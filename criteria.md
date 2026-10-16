@@ -67,7 +67,7 @@ Macro F1 on the held-out test set must be at least 0.60
 
 **Why this target:**
 
-Macro F1 averages across labels without weighting by size, so a model that ignores a small label cannot hide behind overall accuracy. My three labels are roughly balanced (35/32.5/32.5), but I still want to verify none is being abandoned. 0.60 is demanding enough to catch a collapsed label—F1 of 0.00 on any single label would pull the macro below 0.60 in a 3-class setting—without requiring near-perfect performance on every boundary.
+Macro F1 averages across labels without weighting by size, so a model that ignores a small label cannot hide behind overall accuracy. My four labels are reasonably balanced (28/26/26/20), but I still want to verify none is being abandoned. 0.60 is demanding enough to catch a collapsed label—F1 of 0.00 on any single label would pull the macro well below 0.60 in a 4-class setting—without requiring near-perfect performance on every boundary. The `request` label is the smallest at 50 examples, so it is the most likely to drag the macro down.
 
 ---
 

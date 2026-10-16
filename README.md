@@ -75,11 +75,25 @@ This classifier sorts posts from r/travel — Reddit's main English-language tra
 **Example 2:**
 > "Woke up to a text from my airline that my 7am flight is cancelled. New flight is tomorrow 7am. Currently working out which of these emotions is the loudest."
 
+### `request`
+
+**Definition:** A post asking the community for advice, a recommendation, or factual information the writer does not already have. The writer is soliciting answers, not making a claim or sharing an experience.
+
+**Example 1:**
+> "Flying into Bangkok for the first time next month. Is 4 days enough to see the main things before heading south, or should I add more time?"
+
+**Example 2:**
+> "Has anyone done the overland route from Tbilisi to Yerevan recently? How long did the border crossing actually take?"
+
+**What it captures that the other three miss:** On r/travel, a large share of posts are people asking for help — itinerary checks, logistics questions, safety questions, gear questions. None of the three original labels apply: a `request` post makes no claim (so not `analysis` or `hot_take`) and is not about an experience the writer just had (so not `reaction`). The label surfaces the community's advice-giving function, which is distinct from its opinion-stating and experience-sharing functions.
+
 ### The hardest boundary
 
 **Which two labels:** `analysis` vs. `hot_take`
 
 **The decision rule I used every time:** If the post contains a number, ask whether that number actually supports the claim or is just decorative. "I've been to 40 countries and Tokyo is the best" is a `hot_take` — the count establishes the writer's credibility but does not support the evaluative claim. A number that functions as evidence (a price comparison, a measured time, a data point with a conclusion attached) is what makes something `analysis`. When in doubt: could a reader independently check the claim using the information provided? If yes, it is `analysis`. If the information is about the writer's experience rather than a checkable fact, it is `hot_take`.
+
+**Secondary boundary worth noting:** `request` vs. `reaction` — both can be first-person and triggered by an event. The rule: if the post ends with a question mark or its core move is asking, it is `request`, even if it opens with an experience. "Just got robbed in Barcelona — what do I do now?" is `request`. "Just got robbed in Barcelona and I can't believe it happened" is `reaction`.
 
 ---
 
@@ -93,10 +107,11 @@ This classifier sorts posts from r/travel — Reddit's main English-language tra
 
 | Label | Count | Share |
 |---|---|---|
-| analysis | 70 | 35% |
-| hot_take | 65 | 32.5% |
-| reaction | 65 | 32.5% |
-| **Total** | 200 | 100% |
+| analysis | 70 | 28% |
+| hot_take | 65 | 26% |
+| reaction | 65 | 26% |
+| request | 50 | 20% |
+| **Total** | 250 | 100% |
 
 **Three hard cases**
 
@@ -131,12 +146,12 @@ This classifier sorts posts from r/travel — Reddit's main English-language tra
 
 **Anything I changed from the defaults, and why:** Nothing changed. The defaults are appropriate for this dataset size and task. MAX_LENGTH of 128 tokens covers the vast majority of travel posts, which rarely exceed 3-4 sentences.
 
-**Split sizes:** 70% train / 15% val / 15% test on 200 examples. Approximate split:
-- Train: 140 examples (~49 analysis, 45 hot_take, 46 reaction)
-- Val: 30 examples (~10-11 per label)
-- Test: 30 examples (~10-11 per label)
+**Split sizes:** 70% train / 15% val / 15% test on 250 examples. Approximate split:
+- Train: 175 examples (~49 analysis, 45 hot_take, 45 reaction, 35 request)
+- Val: 37 examples (~10-11 per label)
+- Test: 38 examples (~10-11 per label)
 
-All three labels have approximately 10 examples in the test split. That is enough to compute F1 but small enough that a single mislabeled post can move the number by 10 points between seeds, which is why my criteria targets for `hot_take` and `reaction` are set at 0.55 rather than higher.
+All four labels have approximately 10 examples in the test split. That is enough to compute F1 but small enough that a single mislabeled post can move the number by 10 points between seeds, which is why per-label criteria are set at 0.55 rather than higher.
 
 ---
 
@@ -155,6 +170,16 @@ All three labels have approximately 10 examples in the test split. That is enoug
 - *What I changed:* I changed my label on 3 of the 4 disagreements after reading the reasoning. The fourth case I kept my original label because the reasoning relied on context the model did not have (I had seen the thread context; the post was a direct reply, which made it `reaction` not `hot_take`).
 
 **Pre-labelling disclosure:** No pre-labelling. All 200 labels were applied by me first; AI was used only as a second-opinion check on 15 ambiguous cases after my initial pass.
+
+---
+
+## Stretch Feature 1 — Fourth Label: `request`
+
+The three original labels cover what community members *say* (analysis, hot_take, reaction), but not what they *ask*. A large share of r/travel posts are people seeking information — itinerary checks, logistics questions, safety questions, "is this worth it" questions — and none of the three original labels fit them. Labeling them as `hot_take` (no claim) or `reaction` (no experience being reported) would be wrong; leaving them out would mean the classifier fails silently on common input.
+
+The `request` label captures this fourth mode. Adding it increases the dataset from 200 to 250 posts (50 request examples) and changes the training from a 3-class to a 4-class problem. The hardest new boundary is `request` vs. `reaction` when a post opens with an experience and closes with a question; the decision rule is: if the core move of the post is asking, it is `request`.
+
+The `request` label is not in the original five acceptance criteria, which were written before it was added. A sixth criterion could be added in unit 6 once there is a result to calibrate against.
 
 <!-- ═══════════════════════ UNIT 6 — THE TEST ═══════════════════════
 

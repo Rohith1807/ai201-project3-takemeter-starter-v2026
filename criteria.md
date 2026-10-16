@@ -63,7 +63,7 @@ Random guessing on 3 classes gives 33%. A model at 0.65 is meaningfully above ch
 
 ## 2.
 
-Macro F1 on the held-out test set must be at least 0.60.
+Macro F1 on the held-out test set must be at least 0.60
 
 **Why this target:**
 

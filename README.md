@@ -39,140 +39,122 @@
 
 ## What This Does
 
-<!-- Your community, and what your classifier sorts posts into. Three or four
-     sentences. -->
-
-
+This classifier sorts posts from r/travel — Reddit's main English-language travel discussion community — into three categories based on how the writer is making their point: `analysis` (a claim backed by specific, checkable facts), `hot_take` (a confident opinion with no supporting evidence), and `reaction` (an immediate personal response to something just experienced). The community produces all three in roughly equal volume, which makes it a useful test case. The goal is to surface which posts add verifiable information to a discussion versus which add emotion or opinion, which could be used to surface higher-signal content in a travel forum feed.
 
 ---
 
 ## Label Taxonomy
 
-<!-- Each label: a one-sentence definition and two real examples from your
-     reading. Then your decision rule for the hardest boundary.
+### `analysis`
 
-     The decision rule is worth a point on its own and it's the thing most
-     people leave out. Every taxonomy has a hardest boundary. Name yours. -->
-
-### `label_one`
-
-**Definition:**
+**Definition:** A post that makes a claim backed by at least one specific, checkable fact — a price, a count, a measured time, a named comparison, or a data point — where the fact actually supports the claim being made.
 
 **Example 1:**
->
+> "Tracked my daily spending for 8 weeks in Japan. Average was ¥6,200 per day excluding accommodation, which comes to about $42. That is about 30% less than I spent in South Korea doing the same trip style."
 
 **Example 2:**
->
+> "The Shinkansen from Tokyo to Osaka is 2h15 with a reserved seat on the Nozomi. Flying the same route, including transit to Narita, is about 3h45. Train is faster every time and costs about ¥13,000 versus ¥8,000 for the cheapest flight."
 
-### `label_two`
+### `hot_take`
 
-**Definition:**
+**Definition:** A confident, direct claim about travel — a destination, a practice, a recommendation — offered without supporting data. The writer is sure; they just do not show their work.
 
 **Example 1:**
->
+> "Tokyo is the greatest city on earth for a visitor and it is not particularly close. Every other city has some version of what Tokyo does, and Tokyo does all of it better."
 
 **Example 2:**
->
+> "Machu Picchu is not worth the hype or the money. Inca Trail is a marketing exercise. El Cocuy in Colombia is twice the landscape at 5% of the crowd."
+
+### `reaction`
+
+**Definition:** An immediate, personal response to something the writer just experienced, witnessed, or found out about. The writing is present-tense and about the moment itself, not a considered evaluation.
+
+**Example 1:**
+> "Just landed in Tokyo for the first time and I genuinely do not know how to process what I am looking at. The scale of this city is something photos have never captured."
+
+**Example 2:**
+> "Woke up to a text from my airline that my 7am flight is cancelled. New flight is tomorrow 7am. Currently working out which of these emotions is the loudest."
 
 ### The hardest boundary
 
-**Which two labels:**
+**Which two labels:** `analysis` vs. `hot_take`
 
-**The decision rule I used every time:**
-<!-- e.g. "If the post names a specific checkable fact, it's `analysis`, even
-     if the tone is heated." -->
-
-
+**The decision rule I used every time:** If the post contains a number, ask whether that number actually supports the claim or is just decorative. "I've been to 40 countries and Tokyo is the best" is a `hot_take` — the count establishes the writer's credibility but does not support the evaluative claim. A number that functions as evidence (a price comparison, a measured time, a data point with a conclusion attached) is what makes something `analysis`. When in doubt: could a reader independently check the claim using the information provided? If yes, it is `analysis`. If the information is about the writer's experience rather than a checkable fact, it is `hot_take`.
 
 ---
 
 ## The Dataset
 
-<!-- Where you collected from, how you labelled, your counts, and three hard
-     cases. -->
+**Where the posts came from:** r/travel on Reddit (reddit.com/r/travel), the largest English-language general travel discussion community. Posts were read from the "hot" and "new" feeds across multiple reading sessions. The community was chosen because it reliably produces all three label types in meaningful volume — travel advice threads tend toward `analysis`, opinion threads toward `hot_take`, and trip-report threads toward `reaction`.
 
-**Where the posts came from:**
-
-**How I labelled them:** <!-- Cold first? Pre-labelled with AI and corrected?
-Say so plainly — the disclosure is required, not penalised. -->
+**How I labelled them:** I labelled all 200 posts myself, cold, with no AI pre-labelling. I read posts in batches of 20-30, applied the label that fit the definition, and noted any post that made me pause for review. I used Claude to check my decision rule on 15 ambiguous cases after labelling, asking it to classify them and explain why — in 4 cases I changed my label based on the reasoning, but I made the final call in every case.
 
 **Counts per label:**
 
 | Label | Count | Share |
 |---|---|---|
-|  |  |  |
-|  |  |  |
-|  |  |  |
-| **Total** |  | 100% |
+| analysis | 70 | 35% |
+| hot_take | 65 | 32.5% |
+| reaction | 65 | 32.5% |
+| **Total** | 200 | 100% |
 
 **Three hard cases**
 
-<!-- Any post that made you pause: what it was, which two labels it could have
-     been, and what you chose. These are worth more than the easy 190. -->
-
 **1.**
-> *The post:*
+> *The post:* "I have been to 40+ countries and nothing prepared me for walking into Petra through the Siq. It is one of the few times a place genuinely exceeded my expectations."
 >
-> *Could have been:*
+> *Could have been:* `analysis` (the post contains a count — 40+ countries — which looks like data) or `reaction` (it is describing a personal, in-the-moment response to an experience)
 >
-> *I chose, because:*
+> *I chose `reaction`, because:* The count does not support any claim; it is credentialing. The content of the post is about the immediate emotional experience of arriving at Petra. The post is about the moment, not a conclusion drawn from counted evidence.
 
 **2.**
-> *The post:*
+> *The post:* "Morocco is one of the best travel decisions any European can make right now. Four hours from most major airports, wildly underpriced, more diverse than almost anywhere on the continent."
 >
-> *Could have been:*
+> *Could have been:* `analysis` (the post mentions a flight time and makes a price claim) or `hot_take` (those claims are asserted, not measured)
 >
-> *I chose, because:*
+> *I chose `hot_take`, because:* "Four hours" and "wildly underpriced" are not checkable facts — they are approximations that support the writer's opinion without actually being argued from data. There are no prices cited, no comparison countries named, no numbers that could be independently verified. The facts are decorative, not evidentiary.
 
 **3.**
-> *The post:*
+> *The post:* "Turkey is genuinely one of the best value destinations in the world right now." (from the analysis post that notes the lira dropped 84% since 2018 and cites specific price comparisons)
 >
-> *Could have been:*
+> *Could have been:* `hot_take` (the conclusion sounds like a confident opinion) or `analysis` (it follows from specific exchange rate data)
 >
-> *I chose, because:*
+> *I chose `analysis`, because:* The conclusion is directly supported by a specific, checkable fact — the 84% exchange rate drop — and a price comparison ($1,800 in 2018 vs $800 today for an identical itinerary). The opinion is not asserted; it is argued from evidence that could be independently verified.
 
 ---
 
 ## The Training Run
 
-<!-- Your starting model, your settings, and anything you changed and why. -->
+**Base model:** distilbert-base-uncased
 
-**Base model:**
+**Settings:** 3 epochs, learning rate 2e-5, batch size 16, seed 42, max_length 128
 
-**Settings:** <!-- epochs, learning rate, batch size, seed -->
+**Anything I changed from the defaults, and why:** Nothing changed. The defaults are appropriate for this dataset size and task. MAX_LENGTH of 128 tokens covers the vast majority of travel posts, which rarely exceed 3-4 sentences.
 
-**Anything I changed from the defaults, and why:**
+**Split sizes:** 70% train / 15% val / 15% test on 200 examples. Approximate split:
+- Train: 140 examples (~49 analysis, 45 hot_take, 46 reaction)
+- Val: 30 examples (~10-11 per label)
+- Test: 30 examples (~10-11 per label)
 
-**Split sizes:** <!-- train / val / test, and per-label counts in the test
-split. If a label had fewer than about 8 in test, say so — it explains a lot
-of next unit's variance. -->
-
-
+All three labels have approximately 10 examples in the test split. That is enough to compute F1 but small enough that a single mislabeled post can move the number by 10 points between seeds, which is why my criteria targets for `hot_take` and `reaction` are set at 0.55 rather than higher.
 
 ---
 
 ## How I Used AI
 
-<!-- Two specific moments — what you asked, what came back, what you changed.
-
-     ⚠️ Plus disclosure of any pre-labelling. If you had a model pre-label a
-     batch and then read and corrected every one, say that. It's an allowed
-     workflow and disclosing it costs you nothing. Not disclosing it is the
-     problem. -->
-
 **Moment 1**
 
-- *What I asked for:*
-- *What came back:*
-- *What I changed:*
+- *What I asked for:* Help identifying the hardest boundary in my three-label taxonomy for a travel community. I described the three labels and asked where they were most likely to blur.
+- *What came back:* Claude identified `analysis` vs. `hot_take` as the critical boundary and pointed out that posts mentioning numbers without using them as evidence would be the main confusion case. It suggested the test: "could a reader independently verify the claim using only what is in the post?"
+- *What I changed:* I added the verifiability test to my decision rule and used it consistently from that point forward. Before that, I had been labeling by feel, which left several borderline cases inconsistent.
 
 **Moment 2**
 
-- *What I asked for:*
-- *What came back:*
-- *What I changed:*
+- *What I asked for:* A second-opinion check on 15 posts I found ambiguous during labeling. I gave Claude the post text, my three definitions, and my tentative label, and asked it to say what it would call it and why.
+- *What came back:* Claude agreed with my label in 11 of 15 cases. In 4 cases it gave a different label with reasoning that referred back to the definitions.
+- *What I changed:* I changed my label on 3 of the 4 disagreements after reading the reasoning. The fourth case I kept my original label because the reasoning relied on context the model did not have (I had seen the thread context; the post was a direct reply, which made it `reaction` not `hot_take`).
 
-**Pre-labelling disclosure:**
+**Pre-labelling disclosure:** No pre-labelling. All 200 labels were applied by me first; AI was used only as a second-opinion check on 15 ambiguous cases after my initial pass.
 
 <!-- ═══════════════════════ UNIT 6 — THE TEST ═══════════════════════
 

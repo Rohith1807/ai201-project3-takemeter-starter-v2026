@@ -1,0 +1,68 @@
+[
+  {
+    "label": "run1_epochs3",
+    "epochs": 3,
+    "train_seconds": 110.3,
+    "accuracy": 0.9736842105263158,
+    "f1_macro": 0.9759725400457666,
+    "per_label": {
+      "analysis": {
+        "f1": 0.9565217391304348,
+        "precision": 0.9166666666666666,
+        "recall": 1.0,
+        "support": 11
+      },
+      "hot_take": {
+        "f1": 0.9473684210526315,
+        "precision": 1.0,
+        "recall": 0.9,
+        "support": 10
+      },
+      "reaction": {
+        "f1": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "support": 10
+      },
+      "request": {
+        "f1": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "support": 7
+      }
+    }
+  },
+  {
+    "label": "run2_epochs5",
+    "epochs": 5,
+    "train_seconds": 181.2,
+    "accuracy": 0.9736842105263158,
+    "f1_macro": 0.9759725400457666,
+    "per_label": {
+      "analysis": {
+        "f1": 0.9565217391304348,
+        "precision": 0.9166666666666666,
+        "recall": 1.0,
+        "support": 11
+      },
+      "hot_take": {
+        "f1": 0.9473684210526315,
+        "precision": 1.0,
+        "recall": 0.9,
+        "support": 10
+      },
+      "reaction": {
+        "f1": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "support": 10
+      },
+      "request": {
+        "f1": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "support": 7
+      }
+    }
+  }
+]

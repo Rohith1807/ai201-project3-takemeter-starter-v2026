@@ -173,6 +173,28 @@ All four labels have approximately 10 examples in the test split. That is enough
 
 ---
 
+## Stretch Feature 2 — Second Training Run
+
+**Hyperparameter changed:** `EPOCHS` 3 → 5. Everything else held constant: same split (seed 42), same learning rate (2e-5), same batch size (16), same model (distilbert-base-uncased), same 250-row dataset.
+
+| Measure | Run 1 (epochs=3) | Run 2 (epochs=5) | Delta |
+|---|---|---|---|
+| Overall accuracy | 0.974 | 0.974 | 0.000 |
+| Macro F1 | 0.976 | 0.976 | 0.000 |
+| F1 — `analysis` | 0.957 | 0.957 | 0.000 |
+| F1 — `hot_take` | 0.947 | 0.947 | 0.000 |
+| F1 — `reaction` | 1.000 | 1.000 | 0.000 |
+| F1 — `request` | 1.000 | 1.000 | 0.000 |
+| Training time | 110s | 181s | +71s (+64%) |
+
+**What moved:** Nothing on the test set. Accuracy and every per-label F1 are identical across both runs. The only number that changed is training time, which increased 64%.
+
+**What the validation curve showed:** The run-2 validation F1 continued improving past epoch 3 — 0.921 at epoch 2, 0.948 at epoch 3, 0.975 at epoch 5 — while run 1 plateaued at 0.921 after epoch 2. The continued val improvement did not translate to test set gains.
+
+**Why this happened:** With 174 training examples, distilbert-base-uncased converges on this task well within 3 epochs. The val curve was still climbing because with ~38 val examples the metric is noisy, not because the model was still learning generalizable patterns. Adding 2 more epochs cost 71 seconds and returned nothing on the held-out test set. The correct conclusion is that 3 epochs is sufficient for this dataset size — not that 5 epochs would hurt, but that it does not help.
+
+---
+
 ## Stretch Feature 1 — Fourth Label: `request`
 
 The three original labels cover what community members *say* (analysis, hot_take, reaction), but not what they *ask*. A large share of r/travel posts are people seeking information — itinerary checks, logistics questions, safety questions, "is this worth it" questions — and none of the three original labels fit them. Labeling them as `hot_take` (no claim) or `reaction` (no experience being reported) would be wrong; leaving them out would mean the classifier fails silently on common input.

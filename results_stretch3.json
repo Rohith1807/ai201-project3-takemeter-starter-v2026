@@ -1,0 +1,54 @@
+[
+  {
+    "tag": "before_50req",
+    "n_total": 250,
+    "n_request": 50,
+    "n_request_test": 7,
+    "accuracy": 0.9736842105263158,
+    "f1_macro": 0.9759725400457666,
+    "per_label": {
+      "analysis": {
+        "f1": 0.9565217391304348,
+        "support": 11
+      },
+      "hot_take": {
+        "f1": 0.9473684210526315,
+        "support": 10
+      },
+      "reaction": {
+        "f1": 1.0,
+        "support": 10
+      },
+      "request": {
+        "f1": 1.0,
+        "support": 7
+      }
+    }
+  },
+  {
+    "tag": "after_105req",
+    "n_total": 305,
+    "n_request": 105,
+    "n_request_test": 16,
+    "accuracy": 0.9130434782608695,
+    "f1_macro": 0.9093911248710009,
+    "per_label": {
+      "analysis": {
+        "f1": 0.9523809523809523,
+        "support": 10
+      },
+      "hot_take": {
+        "f1": 0.8235294117647058,
+        "support": 10
+      },
+      "reaction": {
+        "f1": 0.9473684210526315,
+        "support": 10
+      },
+      "request": {
+        "f1": 0.9142857142857143,
+        "support": 16
+      }
+    }
+  }
+]

@@ -277,11 +277,11 @@ The `request` label is not in the original five acceptance criteria, which were 
 
 | Criterion | Target | Seed 42 | Seed 7 | Seed 2024 | Verdict |
 |---|---|---|---|---|---|
-| 1. Overall accuracy ≥ 0.65 | 0.65 | 0.933 | 0.967 | 0.933 | MET |
-| 2. Macro F1 ≥ 0.60 | 0.60 | 0.933 | 0.967 | 0.931 | MET |
-| 3. F1 — `analysis` ≥ 0.65 | 0.65 | 0.909 | 0.952 | 0.952 | MET |
-| 4. F1 — `hot_take` ≥ 0.55 | 0.55 | 0.889 | 0.947 | 0.889 | MET |
-| 5. F1 — `reaction` ≥ 0.55 | 0.55 | 1.000 | 1.000 | 0.952 | MET |
+| 1. Overall accuracy | ≥ 0.65 | 0.933 | 0.967 | 0.933 | MET |
+| 2. Macro F1 | ≥ 0.60 | 0.933 | 0.967 | 0.931 | MET |
+| 3. F1 — `analysis` | ≥ 0.65 | 0.909 | 0.952 | 0.952 | MET |
+| 4. F1 — `hot_take` | ≥ 0.55 | 0.889 | 0.947 | 0.889 | MET |
+| 5. F1 — `reaction` | ≥ 0.55 | 1.000 | 1.000 | 0.952 | MET |
 
 ### Confusion matrix
 
@@ -303,11 +303,11 @@ The `request` label is not in the original five acceptance criteria, which were 
 
 | # | Criterion | Target | Verdict | How I decided |
 |---|---|---|---|---|
-| 1 | Overall accuracy ≥ 0.65 | 0.65 | **MET** | Lowest across three seeds was 0.933 — 28 points above target. Holds on all three seeds. |
-| 2 | Macro F1 ≥ 0.60 | 0.60 | **MET** | Lowest was 0.931 — well above target. No label collapsed. |
-| 3 | F1 — `analysis` ≥ 0.65 | 0.65 | **MET** | Lowest was 0.909. Model learned the factual-evidence signal well. |
-| 4 | F1 — `hot_take` ≥ 0.55 | 0.55 | **MET** | Lowest was 0.889, but it's also the label with the biggest spread (0.058) and the only one with off-diagonal errors (2 posts misread as `analysis`). Passes on all three seeds. |
-| 5 | F1 — `reaction` ≥ 0.55 | 0.55 | **MET** | Lowest was 0.952. The present-tense emotional register is the most distinct signal in the dataset. |
+| 1 | Overall accuracy | ≥ 0.65 | **MET** | Lowest across three seeds was 0.933 — 28 points above target. Holds on all three seeds. |
+| 2 | Macro F1 | ≥ 0.60 | **MET** | Lowest was 0.931 — well above target. No label collapsed. |
+| 3 | F1 — `analysis` | ≥ 0.65 | **MET** | Lowest was 0.909. Model learned the factual-evidence signal well. |
+| 4 | F1 — `hot_take` | ≥ 0.55 | **MET** | Lowest was 0.889, but it's also the label with the biggest spread (0.058) and the only one with off-diagonal errors (2 posts misread as `analysis`). Passes on all three seeds. |
+| 5 | F1 — `reaction` | ≥ 0.55 | **MET** | Lowest was 0.952. The present-tense emotional register is the most distinct signal in the dataset. |
 
 **Diagnoses**
 

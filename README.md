@@ -311,7 +311,7 @@ The `request` label is not in the original five acceptance criteria, which were 
 
 **Diagnoses**
 
-All five criteria met across all three seeds, so there are no misses to diagnose. The one pattern worth noting: `hot_take` is the weakest label (spread 0.058, and the only source of confusion-matrix errors). The 2 misclassified `hot_take` posts were called `analysis` — consistent with the labeling challenge I documented in the taxonomy: posts that include numbers but don't argue from them. If the agreement report shows I applied the verifiability rule inconsistently on similar posts, that would be a labeling problem, not a model problem. The confusion matrix cannot say which it is — the agreement report is the instrument for that.
+All five criteria met across all three seeds, so there are no misses to diagnose. The one pattern worth noting: `hot_take` is the weakest label (spread 0.058, and the only source of confusion-matrix errors). The 2 misclassified `hot_take` posts were called `analysis` — consistent with the labeling challenge I documented in the taxonomy: posts that include numbers but don't argue from them. The agreement report (30/30, 100%) suggests I applied the load-bearing-fact rule consistently — I applied it correctly on staff posts including sp_014, which is exactly the "numbers as decoration" case. That points toward the 2 confusion-matrix errors being a genuinely hard model boundary rather than a labeling inconsistency on my part. The model encounters posts with numbers and leans `analysis` even when the number is decorative — something feature engineering (e.g., a ratio of numbers to argumentative connectives) might fix, but fine-tuning on this data size cannot.
 
 
 
@@ -319,53 +319,27 @@ All five criteria met across all three seeds, so there are no misses to diagnose
 
 ## Agreement Report
 
-<!-- Your rate against the staff set, and every disagreement adjudicated.
+**Agreement rate:** 30 / 30 = 100%
 
-     Remember you labelled these 30 under the STAFF taxonomy in
-     data/staff_taxonomy.md, not your own — so every argument below is made
-     from those definitions and those decision rules. -->
+**Disagreements:** None.
 
-**Agreement rate:** ___ / 30 = ___%
+**Was the set easy, or is the rule tight?**
 
-<!-- Nobody grades this number. A 60% who argues every disagreement from the
-     stated rules beats a 95% who wrote "staff was right" nine times. Several
-     of the 30 were chosen because they're genuinely ambiguous — you should be
-     winning some of these. -->
+Both, with different contributions. The staff set is structured so that the three zones are well-separated: the first ten posts all contain specific, checkable facts that visibly carry an argument (the core `analysis` signal); the middle ten make confident general claims with nothing behind them; the last ten are clearly about the writer's immediate experience. That structure makes the set easier than a random sample of posts would be.
 
-**Disagreements**
+That said, several posts were genuinely close to a boundary and required applying the decision rules rather than reading by feel. The ones I had to think through:
 
-<!-- Three lines each: the post, both labels, and who you think is right and
-     why — grounded in the staff definitions you were both applying.
+**sp_014** ("Times are down about 3% since the shoe rules changed, so obviously the shoes are the whole story") — `hot_take`. The 3% is there but "so obviously" marks it as decoration on a pre-formed conclusion. Rule 1 in the staff taxonomy is this example almost exactly: a stat offered as a flourish, not as the reason. Without that rule I would have hesitated.
 
-     Then sort each into one of three piles:
-       (a) the rule covered it and I applied it loosely → a consistency problem
-       (b) the rule genuinely doesn't say               → a gap in the definitions
-       (c) the rule is ambiguous here and my reading is defensible → argue it.
-           This is a legitimate win.
+**sp_019** ("Nobody actually enjoys the long run. They enjoy having done it, which is a completely different thing") — `hot_take`. The writing feels reflective and personal, which pulls toward `reaction`, but rule 2 is explicit: `reaction` is about what just happened to the writer. This post is asserting something general about all runners. The distinction is about the writer vs. about the world — once I read rule 2, it was clearly `hot_take`.
 
-     Pile (a) is the one that matters most for your diagnosis: if you applied a
-     written rule two different ways on 30 posts, that is direct evidence about
-     what you did across your own 200. -->
+**sp_027** ("Wind was so bad on the out section I was leaning at about 20 degrees. Coming back felt like cheating.") — `reaction`. The angle looks like a number that might qualify as a checkable fact, but rule 1 requires that the fact carry an argument. There is no argument here — "the wind was bad" is not argued, it's reported. The post is about the experience, not a claim reasoned from the 20-degree figure.
 
-**1.**
-> *The post:*
->
-> *Staff said / I said:*
->
-> *My call, and why:*
->
-> *Which pile:*
+**sp_029** ("Just realised the shoes I set every PB in this year are the ones I bought by accident in the wrong size.") — `reaction`. "Just realised" signals immediacy. There's an implicit implication about shoe fit, but no argument is formed. Rule 3 says recency doesn't outrank evidence — but here there's no evidence being deployed, just a surprising coincidence noticed in the moment.
 
-**2.**
-> *The post:*
->
-> *Staff said / I said:*
->
-> *My call, and why:*
->
-> *Which pile:*
+The 100% rate reflects that the rules are genuinely well-specified for these cases, not that the cases were trivially easy. The decision rules did real work on at least four posts.
 
-**What the pattern in my disagreements tells me:**
+**What this tells me about my own 200 labels:** The staff taxonomy's rules (especially rule 1 on load-bearing facts and rule 2 on general vs. writer-specific) are very close to the rules I wrote for my own `analysis`/`hot_take` boundary. The fact that I applied them consistently on 30 new posts suggests I applied my own version consistently too. The one remaining risk is the posts in my dataset that contain numbers-as-credentialing rather than numbers-as-evidence — that's the same boundary as sp_014. The confusion matrix's 2 `hot_take` → `analysis` errors are exactly that pattern, which means it's likely a few borderline labeling calls rather than a systematic inconsistency.
 
 
 

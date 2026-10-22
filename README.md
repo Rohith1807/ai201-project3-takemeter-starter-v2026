@@ -347,24 +347,38 @@ The 100% rate reflects that the rules are genuinely well-specified for these cas
 
 ## The Improvement
 
-**What I changed:**
+**What I changed:** Added 30 new `hot_take` examples to `labels.csv` (65 → 95 `hot_take` rows, dataset 200 → 230 total). Fifteen of the new posts deliberately include numbers used as credentialing rather than argument — e.g., "Been to 45 countries and overland travel is always more interesting than flying" — targeting the exact confusion the model showed (2 `hot_take` posts called `analysis` in the before confusion matrix).
 
-**Which diagnosis pointed at it:**
+**Which diagnosis pointed at it:** The confusion matrix showed 2 `hot_take`→`analysis` errors and zero in the other direction — a lopsided pattern pointing at the model learning "numbers = analysis." The agreement report (100%) confirmed this was not a labeling inconsistency, so the fix had to be more examples showing that numbers can appear in `hot_take` posts. Adding examples of the confused subtype is the standard response when the diagnosis rules out labeling error.
 
 ### Run Log — After
 
+<!-- 230 examples: analysis 70, hot_take 95, reaction 65. Test split ~35 posts per seed.
+     Spread widened to 0.114 — above the 10-point threshold. -->
+
+| Measure | Seed 42 | Seed 7 | Seed 2024 | Spread |
+|---|---|---|---|---|
+| Overall accuracy | 0.971 | 1.000 | 0.886 | 0.114 |
+| Macro F1 | 0.972 | 1.000 | 0.888 | 0.112 |
+| F1 — `analysis` | 1.000 | 1.000 | 0.900 | 0.100 |
+| F1 — `hot_take` | 0.963 | 1.000 | 0.875 | 0.125 |
+| F1 — `reaction` | 0.952 | 1.000 | 0.889 | 0.111 |
+
 | Criterion | Target | Seed 42 | Seed 7 | Seed 2024 | Verdict |
 |---|---|---|---|---|---|
-| 1.  |  |  |  |  |  |
-| 2.  |  |  |  |  |  |
-| 3.  |  |  |  |  |  |
-| 4.  |  |  |  |  |  |
-| 5.  |  |  |  |  |  |
+| 1. Overall accuracy | ≥ 0.65 | 0.971 | 1.000 | 0.886 | MET |
+| 2. Macro F1 | ≥ 0.60 | 0.972 | 1.000 | 0.888 | MET |
+| 3. F1 — `analysis` | ≥ 0.65 | 1.000 | 1.000 | 0.900 | MET |
+| 4. F1 — `hot_take` | ≥ 0.55 | 0.963 | 1.000 | 0.875 | MET |
+| 5. F1 — `reaction` | ≥ 0.55 | 0.952 | 1.000 | 0.889 | MET |
 
 **Did it help, and how do I know:**
 
-<!-- If it didn't, say so. Relabelling that didn't help is a genuinely
-     interesting result and earns full credit. -->
+Mixed result, honestly reported. On two of three seeds, `hot_take` F1 improved: seed 42 went from 0.889 → 0.963, seed 7 from 0.947 → 1.000. On seed 2024 it went from 0.889 → 0.875 — slightly worse. The minimum `hot_take` F1 across seeds moved from 0.889 to 0.875: the floor dropped slightly.
+
+The spread widened from 0.033 to 0.114, crossing the 10-point stability threshold. The before numbers were stable; the after numbers are not. Adding 30 examples also changed the test split size (30 → 35 posts per seed) and composition (`hot_take` test examples increased from ~10 to ~14), so the two run logs are not measured on exactly the same posts.
+
+The underlying confusion appears reduced on seed 42: the after confusion matrix shows 0 `hot_take`→`analysis` errors (versus 2 before), with a new 1 `hot_take`→`reaction` error instead. But the increased variance means this cannot be stated confidently. All five criteria remain met across all three seeds.
 
 
 
@@ -372,13 +386,9 @@ The 100% rate reflects that the rules are genuinely well-specified for these cas
 
 ## What's Still Broken
 
-<!-- For each criterion still missed: what you'd do, and why you stopped. -->
+All five criteria passed on both the before and after runs, so there are no missed criteria. The one thing that got worse with the improvement: **stability**. The spread went from 0.033 (trustworthy) to 0.114 (above the 10-point warning threshold). If this were a real submission with a higher bar, I would need more data across all three labels — not just `hot_take` — to bring the spread back down. Adding 30 examples to one label while holding the others fixed unbalanced the dataset and increased variance in the test draw. What I would do next: add 30 examples each to `analysis` and `reaction` as well, to reach ~125 per label, then re-run to see whether the spread returns to below 0.05.
 
-
-
-**The gap between what I meant my labels to capture and what the model
-learned:**
-<!-- Two sentences. Your confusion matrix is the evidence. -->
+**The gap between what I meant my labels to capture and what the model learned:** I defined `hot_take` as a confident claim with no supporting evidence, and `analysis` as a claim backed by a load-bearing fact — but the model learned a shallower proxy: "contains a number = `analysis`." The before confusion matrix's 2 `hot_take`→`analysis` errors, and the after confusion matrix's shift to 1 `hot_take`→`reaction` error, both show the model has not fully internalized the argumentative function of numbers — only their presence.
 
 
 

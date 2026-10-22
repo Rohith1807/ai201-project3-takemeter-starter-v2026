@@ -1,0 +1,30 @@
+{
+  "note": "Zero-shot BART-MNLI baseline on test_split.csv (30 posts, 3 labels: analysis/hot_take/reaction). label_definitions.txt used as prompts. results.json is the 3-label trained model; request label added in stretch feature is not represented here.",
+  "baseline": {
+    "accuracy": 0.533,
+    "f1_macro": 0.349,
+    "per_label": {
+      "analysis": { "f1": 0.645, "support": 10 },
+      "hot_take": { "f1": 0.000, "support": 10 },
+      "reaction": { "f1": 0.750, "support": 10 }
+    }
+  },
+  "trained": {
+    "accuracy": 0.9333333333333333,
+    "f1_macro": 0.9326599326599326,
+    "per_label": {
+      "analysis": { "f1": 0.9090909090909091, "support": 10 },
+      "hot_take": { "f1": 0.8888888888888888, "support": 10 },
+      "reaction": { "f1": 1.0, "support": 10 }
+    }
+  },
+  "differences": {
+    "accuracy": 0.400,
+    "f1_macro": 0.584,
+    "per_label": {
+      "analysis": 0.264,
+      "hot_take": 0.889,
+      "reaction": 0.250
+    }
+  }
+}

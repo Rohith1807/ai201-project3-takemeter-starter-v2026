@@ -239,23 +239,22 @@ The `request` label is not in the original five acceptance criteria, which were 
 
 ## Baseline vs. Trained
 
-<!-- Both models on the same posts. `python baseline.py --trained results.json`
-     prints this table for you. -->
+<!-- Note: results.json is the 3-label model (analysis / hot_take / reaction)
+     generated before the request stretch feature. test_split.csv reflects those
+     same 30 posts. The baseline was run on those same posts; request shows n=0
+     there and is omitted from the comparison. baseline_results.json committed. -->
+
+**What I predicted before I looked:** The trained model will beat the baseline most on `hot_take` — zero-shot classification cannot reliably distinguish "confident opinion with no evidence" from "immediate personal reaction" without labeled examples showing the difference, so I expect the baseline's `hot_take` F1 to be near zero while the trained model handles it well.
 
 | Measure | Baseline | Trained | Difference |
 |---|---|---|---|
-| Overall accuracy |  |  |  |
-| Macro F1 |  |  |  |
-| F1 — `label_one` |  |  |  |
-| F1 — `label_two` |  |  |  |
+| Overall accuracy | 0.533 | 0.933 | +0.400 |
+| Macro F1 | 0.349 | 0.933 | +0.584 |
+| F1 — `analysis` | 0.645 | 0.909 | +0.264 |
+| F1 — `hot_take` | 0.000 | 0.889 | +0.889 |
+| F1 — `reaction` | 0.750 | 1.000 | +0.250 |
 
-**What I predicted before I looked:**
-<!-- Milestone 1 asks you to write this BEFORE seeing the trained numbers. A
-     prediction made afterwards isn't one. -->
-
-**What the gap actually means:**
-<!-- If the baseline matched your trained model, your fine-tuning added
-     nothing — and that is a real finding, not a failure. Say it plainly. -->
+**What the gap actually means:** The baseline (zero-shot BART-MNLI with label definitions) completely collapsed on `hot_take` — F1 of 0.000 — confirming the prediction: without examples, the model cannot learn that "confident but unsubstantiated" is a different signal from "emotionally present." The 0.400 accuracy gap and 0.584 macro F1 gap are almost entirely explained by that one failure; `analysis` and `reaction` the baseline handled reasonably well (0.645 and 0.750). Fine-tuning on labeled examples was the difference between a model that could not distinguish the three classes and one that got 93% right. The definitions in `label_definitions.txt` were not enough — the model needed examples to see what the boundary actually looked like.
 
 
 

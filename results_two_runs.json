@@ -1,68 +1,139 @@
 [
   {
-    "label": "run1_epochs3",
-    "epochs": 3,
-    "train_seconds": 110.3,
-    "accuracy": 0.9736842105263158,
-    "f1_macro": 0.9759725400457666,
+    "seed": 42,
+    "n_test": 51,
+    "accuracy": 0.9607843137254902,
+    "f1_macro": 0.9579949036470776,
     "per_label": {
       "analysis": {
-        "f1": 0.9565217391304348,
         "precision": 0.9166666666666666,
         "recall": 1.0,
+        "f1": 0.9565217391304348,
         "support": 11
       },
       "hot_take": {
-        "f1": 0.9473684210526315,
         "precision": 1.0,
-        "recall": 0.9,
-        "support": 10
+        "recall": 0.8571428571428571,
+        "f1": 0.9230769230769231,
+        "support": 14
       },
       "reaction": {
-        "f1": 1.0,
-        "precision": 1.0,
+        "precision": 0.9090909090909091,
         "recall": 1.0,
+        "f1": 0.9523809523809523,
         "support": 10
       },
       "request": {
-        "f1": 1.0,
         "precision": 1.0,
         "recall": 1.0,
-        "support": 7
+        "f1": 1.0,
+        "support": 16
       }
-    }
+    },
+    "confusion": {
+      "analysis": {
+        "analysis": 11,
+        "hot_take": 0,
+        "reaction": 0,
+        "request": 0
+      },
+      "hot_take": {
+        "analysis": 1,
+        "hot_take": 12,
+        "reaction": 1,
+        "request": 0
+      },
+      "reaction": {
+        "analysis": 0,
+        "hot_take": 0,
+        "reaction": 10,
+        "request": 0
+      },
+      "request": {
+        "analysis": 0,
+        "hot_take": 0,
+        "reaction": 0,
+        "request": 16
+      }
+    },
+    "confidence": {
+      "mean_when_right": 0.4703232944011688,
+      "mean_when_wrong": 0.30262553691864014,
+      "accuracy_most_confident_third": 1.0,
+      "accuracy_least_confident_third": 0.8823529411764706,
+      "n_per_third": 17
+    },
+    "epochs": 3,
+    "device": "cpu",
+    "device_name": "CPU"
   },
   {
-    "label": "run2_epochs5",
-    "epochs": 5,
-    "train_seconds": 181.2,
-    "accuracy": 0.9736842105263158,
-    "f1_macro": 0.9759725400457666,
+    "seed": 42,
+    "n_test": 51,
+    "accuracy": 0.9803921568627451,
+    "f1_macro": 0.9788359788359788,
     "per_label": {
       "analysis": {
-        "f1": 0.9565217391304348,
-        "precision": 0.9166666666666666,
+        "precision": 1.0,
         "recall": 1.0,
+        "f1": 1.0,
         "support": 11
       },
       "hot_take": {
-        "f1": 0.9473684210526315,
         "precision": 1.0,
-        "recall": 0.9,
-        "support": 10
+        "recall": 0.9285714285714286,
+        "f1": 0.9629629629629629,
+        "support": 14
       },
       "reaction": {
-        "f1": 1.0,
-        "precision": 1.0,
+        "precision": 0.9090909090909091,
         "recall": 1.0,
+        "f1": 0.9523809523809523,
         "support": 10
       },
       "request": {
-        "f1": 1.0,
         "precision": 1.0,
         "recall": 1.0,
-        "support": 7
+        "f1": 1.0,
+        "support": 16
       }
-    }
+    },
+    "confusion": {
+      "analysis": {
+        "analysis": 11,
+        "hot_take": 0,
+        "reaction": 0,
+        "request": 0
+      },
+      "hot_take": {
+        "analysis": 0,
+        "hot_take": 13,
+        "reaction": 1,
+        "request": 0
+      },
+      "reaction": {
+        "analysis": 0,
+        "hot_take": 0,
+        "reaction": 10,
+        "request": 0
+      },
+      "request": {
+        "analysis": 0,
+        "hot_take": 0,
+        "reaction": 0,
+        "request": 16
+      }
+    },
+    "confidence": {
+      "mean_when_right": 0.7075456380844116,
+      "mean_when_wrong": 0.4859560430049896,
+      "accuracy_most_confident_third": 1.0,
+      "accuracy_least_confident_third": 0.9411764705882353,
+      "n_per_third": 17
+    },
+    "epochs": 5,
+    "train_seconds": 186.4,
+    "device": "cpu",
+    "device_name": "CPU"
   }
 ]

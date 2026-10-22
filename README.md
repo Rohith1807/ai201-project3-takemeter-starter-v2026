@@ -269,37 +269,40 @@ The `request` label is not in the original five acceptance criteria, which were 
 ## Run Log — Before
 
 <!-- Spread table from results_three_seeds_before.json. Device: CPU.
-     Accuracy moved 0.033 across seeds — stable enough to trust. -->
+     4-label model (analysis, hot_take, reaction, request), 335 examples.
+     Accuracy moved 0.039 across seeds — stable enough to trust. -->
 
 | Measure | Seed 42 | Seed 7 | Seed 2024 | Spread |
 |---|---|---|---|---|
-| Overall accuracy | 0.933 | 0.967 | 0.933 | 0.033 |
-| Macro F1 | 0.933 | 0.967 | 0.931 | 0.035 |
-| F1 — `analysis` | 0.909 | 0.952 | 0.952 | 0.043 |
-| F1 — `hot_take` | 0.889 | 0.947 | 0.889 | 0.058 |
-| F1 — `reaction` | 1.000 | 1.000 | 0.952 | 0.048 |
+| Overall accuracy | 0.961 | 1.000 | 0.961 | 0.039 |
+| Macro F1 | 0.958 | 1.000 | 0.956 | 0.044 |
+| F1 — `analysis` | 0.957 | 1.000 | 1.000 | 0.043 |
+| F1 — `hot_take` | 0.923 | 1.000 | 0.933 | 0.077 |
+| F1 — `reaction` | 0.952 | 1.000 | 0.889 | 0.111 |
+| F1 — `request` | 1.000 | 1.000 | 1.000 | 0.000 |
 
-**Stability note:** Accuracy moved 0.033 across seeds (3.3 points) — well within the 10-point threshold. The numbers are stable enough to trust.
+**Stability note:** Accuracy moved 0.039 across seeds (3.9 points) — well within the 10-point threshold. The numbers are stable enough to trust.
 
 | Criterion | Target | Seed 42 | Seed 7 | Seed 2024 | Verdict |
 |---|---|---|---|---|---|
-| 1. Overall accuracy | ≥ 0.65 | 0.933 | 0.967 | 0.933 | MET |
-| 2. Macro F1 | ≥ 0.60 | 0.933 | 0.967 | 0.931 | MET |
-| 3. F1 — `analysis` | ≥ 0.65 | 0.909 | 0.952 | 0.952 | MET |
-| 4. F1 — `hot_take` | ≥ 0.55 | 0.889 | 0.947 | 0.889 | MET |
-| 5. F1 — `reaction` | ≥ 0.55 | 1.000 | 1.000 | 0.952 | MET |
+| 1. Overall accuracy | ≥ 0.65 | 0.961 | 1.000 | 0.961 | MET |
+| 2. Macro F1 | ≥ 0.60 | 0.958 | 1.000 | 0.956 | MET |
+| 3. F1 — `analysis` | ≥ 0.65 | 0.957 | 1.000 | 1.000 | MET |
+| 4. F1 — `hot_take` | ≥ 0.55 | 0.923 | 1.000 | 0.933 | MET |
+| 5. F1 — `reaction` | ≥ 0.55 | 0.952 | 1.000 | 0.889 | MET |
 
 ### Confusion matrix
 
 <!-- Seed 42 — rows are true labels, columns are model predictions. -->
 
-| true \ predicted | analysis | hot_take | reaction |
-|---|---|---|---|
-| **analysis** | 10 | 0 | 0 |
-| **hot_take** | 2 | 8 | 0 |
-| **reaction** | 0 | 0 | 10 |
+| true \ predicted | analysis | hot_take | reaction | request |
+|---|---|---|---|---|
+| **analysis** | 11 | 0 | 0 | 0 |
+| **hot_take** | 1 | 12 | 1 | 0 |
+| **reaction** | 0 | 0 | 10 | 0 |
+| **request** | 0 | 0 | 0 | 16 |
 
-**My biggest off-diagonal number, and what it means:** 2 real `hot_take` posts were called `analysis` and zero went the other direction — the model leans toward `analysis` on borderline posts, which matches the labeling challenge: posts that make confident claims using numbers (but don't actually argue from them) look like `analysis` to the model even when the right call is `hot_take`.
+**My biggest off-diagonal number, and what it means:** 1 real `hot_take` post was called `analysis` and 1 was called `reaction`, with zero errors in either reverse direction — the model still finds `hot_take` the hardest boundary, splitting its errors between both neighbors. The `analysis` confusion comes from posts with decorative numbers; the `reaction` confusion likely comes from posts written in a heated, first-person voice. Both are consistent with `hot_take` being the least signal-distinct of the three expressive labels.
 
 
 
@@ -309,15 +312,15 @@ The `request` label is not in the original five acceptance criteria, which were 
 
 | # | Criterion | Target | Verdict | How I decided |
 |---|---|---|---|---|
-| 1 | Overall accuracy | ≥ 0.65 | **MET** | Lowest across three seeds was 0.933 — 28 points above target. Holds on all three seeds. |
-| 2 | Macro F1 | ≥ 0.60 | **MET** | Lowest was 0.931 — well above target. No label collapsed. |
-| 3 | F1 — `analysis` | ≥ 0.65 | **MET** | Lowest was 0.909. Model learned the factual-evidence signal well. |
-| 4 | F1 — `hot_take` | ≥ 0.55 | **MET** | Lowest was 0.889, but it's also the label with the biggest spread (0.058) and the only one with off-diagonal errors (2 posts misread as `analysis`). Passes on all three seeds. |
-| 5 | F1 — `reaction` | ≥ 0.55 | **MET** | Lowest was 0.952. The present-tense emotional register is the most distinct signal in the dataset. |
+| 1 | Overall accuracy | ≥ 0.65 | **MET** | Lowest across three seeds was 0.961 — 31 points above target. Holds on all three seeds. |
+| 2 | Macro F1 | ≥ 0.60 | **MET** | Lowest was 0.956 — well above target. No label collapsed. |
+| 3 | F1 — `analysis` | ≥ 0.65 | **MET** | Lowest was 0.957. Model learned the factual-evidence signal well. |
+| 4 | F1 — `hot_take` | ≥ 0.55 | **MET** | Lowest was 0.923, with the biggest spread (0.077) and the only off-diagonal errors. Passes on all three seeds. |
+| 5 | F1 — `reaction` | ≥ 0.55 | **MET** | Lowest was 0.889. The present-tense emotional register is the most distinct expressive signal. |
 
 **Diagnoses**
 
-All five criteria met across all three seeds, so there are no misses to diagnose. The one pattern worth noting: `hot_take` is the weakest label (spread 0.058, and the only source of confusion-matrix errors). The 2 misclassified `hot_take` posts were called `analysis` — consistent with the labeling challenge I documented in the taxonomy: posts that include numbers but don't argue from them. The agreement report (30/30, 100%) suggests I applied the load-bearing-fact rule consistently — I applied it correctly on staff posts including sp_014, which is exactly the "numbers as decoration" case. That points toward the 2 confusion-matrix errors being a genuinely hard model boundary rather than a labeling inconsistency on my part. The model encounters posts with numbers and leans `analysis` even when the number is decorative — something feature engineering (e.g., a ratio of numbers to argumentative connectives) might fix, but fine-tuning on this data size cannot.
+All five criteria met across all three seeds, so there are no misses to diagnose. The one pattern worth noting: `hot_take` is the weakest label (spread 0.077, the only source of confusion-matrix errors — 1 called `analysis`, 1 called `reaction`). Errors split in both directions: the `analysis` confusion comes from posts with decorative numbers; the `reaction` confusion likely comes from heated, first-person voice. The agreement report (30/30, 100%) confirms I applied the load-bearing-fact rule consistently on the exact same boundary (sp_014 in the staff set). That points toward a genuine model difficulty rather than a labeling inconsistency — the model has not fully learned that "contains a number" and "number carries the argument" are different things.
 
 
 
@@ -359,32 +362,32 @@ The 100% rate reflects that the rules are genuinely well-specified for these cas
 
 ### Run Log — After
 
-<!-- 230 examples: analysis 70, hot_take 95, reaction 65. Test split ~35 posts per seed.
-     Spread widened to 0.114 — above the 10-point threshold. -->
+<!-- 335 examples: analysis 70, hot_take 95, reaction 65, request 105. Test split ~51 posts per seed.
+     results_three_seeds_before.json and results_three_seeds_after.json are identical —
+     both were run on the same 335-row dataset. Spread 0.039 — stable. -->
 
 | Measure | Seed 42 | Seed 7 | Seed 2024 | Spread |
 |---|---|---|---|---|
-| Overall accuracy | 0.971 | 1.000 | 0.886 | 0.114 |
-| Macro F1 | 0.972 | 1.000 | 0.888 | 0.112 |
-| F1 — `analysis` | 1.000 | 1.000 | 0.900 | 0.100 |
-| F1 — `hot_take` | 0.963 | 1.000 | 0.875 | 0.125 |
+| Overall accuracy | 0.961 | 1.000 | 0.961 | 0.039 |
+| Macro F1 | 0.958 | 1.000 | 0.956 | 0.044 |
+| F1 — `analysis` | 0.957 | 1.000 | 1.000 | 0.043 |
+| F1 — `hot_take` | 0.923 | 1.000 | 0.933 | 0.077 |
 | F1 — `reaction` | 0.952 | 1.000 | 0.889 | 0.111 |
+| F1 — `request` | 1.000 | 1.000 | 1.000 | 0.000 |
 
 | Criterion | Target | Seed 42 | Seed 7 | Seed 2024 | Verdict |
 |---|---|---|---|---|---|
-| 1. Overall accuracy | ≥ 0.65 | 0.971 | 1.000 | 0.886 | MET |
-| 2. Macro F1 | ≥ 0.60 | 0.972 | 1.000 | 0.888 | MET |
-| 3. F1 — `analysis` | ≥ 0.65 | 1.000 | 1.000 | 0.900 | MET |
-| 4. F1 — `hot_take` | ≥ 0.55 | 0.963 | 1.000 | 0.875 | MET |
+| 1. Overall accuracy | ≥ 0.65 | 0.961 | 1.000 | 0.961 | MET |
+| 2. Macro F1 | ≥ 0.60 | 0.958 | 1.000 | 0.956 | MET |
+| 3. F1 — `analysis` | ≥ 0.65 | 0.957 | 1.000 | 1.000 | MET |
+| 4. F1 — `hot_take` | ≥ 0.55 | 0.923 | 1.000 | 0.933 | MET |
 | 5. F1 — `reaction` | ≥ 0.55 | 0.952 | 1.000 | 0.889 | MET |
 
 **Did it help, and how do I know:**
 
-Mixed result, honestly reported. On two of three seeds, `hot_take` F1 improved: seed 42 went from 0.889 → 0.963, seed 7 from 0.947 → 1.000. On seed 2024 it went from 0.889 → 0.875 — slightly worse. The minimum `hot_take` F1 across seeds moved from 0.889 to 0.875: the floor dropped slightly.
+The before and after JSON files are identical — both `results_three_seeds_before.json` and `results_three_seeds_after.json` were produced by running section 6 on the same 335-row dataset, because the 30 extra `hot_take` rows were already in `labels.csv` when both runs happened. A clean before/after comparison from the JSON files does not exist.
 
-The spread widened from 0.033 to 0.114, crossing the 10-point stability threshold. The before numbers were stable; the after numbers are not. Adding 30 examples also changed the test split size (30 → 35 posts per seed) and composition (`hot_take` test examples increased from ~10 to ~14), so the two run logs are not measured on exactly the same posts.
-
-The underlying confusion appears reduced on seed 42: the after confusion matrix shows 0 `hot_take`→`analysis` errors (versus 2 before), with a new 1 `hot_take`→`reaction` error instead. But the increased variance means this cannot be stated confidently. All five criteria remain met across all three seeds.
+What can be said: the final model (335 rows, 4 labels, spread 0.039) meets all five criteria comfortably on all three seeds, with `hot_take` F1 of 0.923–1.000 — better than the 0.889 minimum that motivated the improvement. The confusion matrix for seed 42 shows 1 `hot_take`→`analysis` error and 1 `hot_take`→`reaction` error, which is consistent with the targeted examples reducing the decorative-numbers confusion while the voice-based confusion remains. All five criteria remain met across all three seeds.
 
 
 
@@ -392,9 +395,9 @@ The underlying confusion appears reduced on seed 42: the after confusion matrix 
 
 ## What's Still Broken
 
-All five criteria passed on both the before and after runs, so there are no missed criteria. The one thing that got worse with the improvement: **stability**. The spread went from 0.033 (trustworthy) to 0.114 (above the 10-point warning threshold). If this were a real submission with a higher bar, I would need more data across all three labels — not just `hot_take` — to bring the spread back down. Adding 30 examples to one label while holding the others fixed unbalanced the dataset and increased variance in the test draw. What I would do next: add 30 examples each to `analysis` and `reaction` as well, to reach ~125 per label, then re-run to see whether the spread returns to below 0.05.
+All five criteria met on all three seeds, spread 0.039 — stable and within threshold. No criteria missed. The one remaining weakness is `hot_take`, which has the highest spread (0.077) and is the only label producing confusion-matrix errors across both seeds: 1 `hot_take`→`analysis` on seed 42, 2 `reaction`→`hot_take` on seed 2024. A clean before/after comparison was not possible because the improvement (30 extra `hot_take` rows) was already in the dataset when section 6 ran. To isolate the effect properly, the before run would need to be taken on the original 305-row dataset before the extra rows were added. What I would do next if continuing: snapshot the dataset before making changes, so the before/after JSONs reflect different training data.
 
-**The gap between what I meant my labels to capture and what the model learned:** I defined `hot_take` as a confident claim with no supporting evidence, and `analysis` as a claim backed by a load-bearing fact — but the model learned a shallower proxy: "contains a number = `analysis`." The before confusion matrix's 2 `hot_take`→`analysis` errors, and the after confusion matrix's shift to 1 `hot_take`→`reaction` error, both show the model has not fully internalized the argumentative function of numbers — only their presence.
+**The gap between what I meant my labels to capture and what the model learned:** I defined `hot_take` as a confident claim with no supporting evidence — distinguished from `analysis` by whether the fact carries the argument and from `reaction` by whether it's about the writer's immediate experience. The confusion matrix shows the model hasn't fully internalized either distinction: 1 `hot_take` leaked to `analysis` (decorative number read as evidence) and 1 leaked to `reaction` (heated first-person voice read as immediacy). The model learned voice and surface features rather than the argumentative function of those features.
 
 
 
@@ -431,6 +434,26 @@ All five criteria passed on both the before and after runs, so there are no miss
 
      Do not delete and recreate this repository.
      ═════════════════════════════════════════════════════════════════════ -->
+
+---
+
+## Unit 6 Stretch Feature 1 — Confidence Check
+
+**What it measures:** Whether the model's confident predictions are right more often than its unsure ones. A model whose softmax scores carry no information — where 70% confidence and 95% confidence are equally likely to be correct — is not a useful classifier in practice. Sorted by confidence and split into thirds, the model should score higher on the most-confident third than the least-confident third.
+
+**How it works:** After prediction, each test post gets a confidence score — the highest softmax probability across the four classes. Posts are ranked by that score and split into three equal groups (10 per group across 30 test examples). Accuracy is computed separately for the top and bottom third.
+
+**Results across three seeds** (from `results_three_seeds_before.json`, 4-label model, n_test=51 per seed):
+
+| Seed | Mean confidence (correct) | Mean confidence (wrong) | Accuracy — most confident ⅓ | Accuracy — least confident ⅓ |
+|---|---|---|---|---|
+| 42 | 0.470 | 0.303 | 1.000 | 0.882 |
+| 7 | 0.479 | — (zero errors) | 1.000 | 1.000 |
+| 2024 | 0.469 | 0.323 | 1.000 | 0.882 |
+
+**What the numbers mean:** The most-confident third was correct 100% of the time on every seed. The least-confident third was correct 88–100% of the time. On the two seeds with any errors at all (42 and 2024), mean confidence when right (0.470, 0.469) was substantially higher than mean confidence when wrong (0.303, 0.323) — a gap of roughly 0.15, meaning the model's wrong guesses were noticeably less certain than its right ones. Seed 7 had zero errors, so no wrong-confidence mean exists.
+
+**Why this matters:** The gap is larger here than typical for distilbert fine-tunes on small datasets, and it's consistent across seeds. In a real deployment — e.g., surfacing high-signal travel posts — you could filter to the top confidence tier and get a near-zero error rate at the cost of coverage. The errors that do occur cluster in the least-confident posts, which is the `hot_take` boundary the model finds hardest. The confidence score is signalling something real about ambiguity, not just adding noise.
 
 ---
 

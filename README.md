@@ -169,7 +169,13 @@ All four labels have at least 10 examples in the test split. `request` has 16, w
 - *What came back:* Claude agreed with my label in 11 of 15 cases. In 4 cases it gave a different label with reasoning that referred back to the definitions.
 - *What I changed:* I changed my label on 3 of the 4 disagreements after reading the reasoning. The fourth case I kept my original label because the reasoning relied on context the model did not have (I had seen the thread context; the post was a direct reply, which made it `reaction` not `hot_take`).
 
-**Pre-labelling disclosure:** No pre-labelling. All 200 labels were applied by me first; AI was used only as a second-opinion check on 15 ambiguous cases after my initial pass.
+**Moment 3 — Unit 6**
+
+- *What I asked for:* After getting the confusion matrix (2 `hot_take` posts called `analysis`, 0 in the other direction), I asked Claude to help interpret whether the lopsided direction was more consistent with a labeling inconsistency or a model limitation, and to suggest what kind of new examples would most directly address it.
+- *What came back:* Claude identified the pattern as "the model learned numbers = analysis as a surface heuristic" and noted that the 100% agreement rate on the staff set — which included sp_014, the exact "decorative numbers" case — was evidence against a labeling problem. It suggested adding `hot_take` examples that visibly contain numbers used as credentialing rather than argument, so the model sees counterexamples to the numbers-as-evidence shortcut.
+- *What I changed:* Added 30 new `hot_take` examples, 15 of which deliberately include numbers-as-credentialing (e.g., "Been to 45 countries and overland travel is always more interesting than flying"). The after confusion matrix on seed 42 shows 0 `hot_take`→`analysis` errors, confirming the targeted examples addressed that specific boundary — though the increased spread (0.033 → 0.114) means more data across all labels would be needed to make the result trustworthy.
+
+**Pre-labelling disclosure:** No pre-labelling. All labels were applied by me first; AI was used only as a second-opinion check on ambiguous cases and for diagnosis in unit 6.
 
 ---
 

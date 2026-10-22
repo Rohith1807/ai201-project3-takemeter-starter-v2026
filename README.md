@@ -262,32 +262,38 @@ The `request` label is not in the original five acceptance criteria, which were 
 
 ## Run Log — Before
 
-<!-- Five criteria across three seeds. The notebook's section 6 prints the
-     spread table; the Target and Verdict columns are yours. -->
+<!-- Spread table from results_three_seeds_before.json. Device: CPU.
+     Accuracy moved 0.033 across seeds — stable enough to trust. -->
+
+| Measure | Seed 42 | Seed 7 | Seed 2024 | Spread |
+|---|---|---|---|---|
+| Overall accuracy | 0.933 | 0.967 | 0.933 | 0.033 |
+| Macro F1 | 0.933 | 0.967 | 0.931 | 0.035 |
+| F1 — `analysis` | 0.909 | 0.952 | 0.952 | 0.043 |
+| F1 — `hot_take` | 0.889 | 0.947 | 0.889 | 0.058 |
+| F1 — `reaction` | 1.000 | 1.000 | 0.952 | 0.048 |
+
+**Stability note:** Accuracy moved 0.033 across seeds (3.3 points) — well within the 10-point threshold. The numbers are stable enough to trust.
 
 | Criterion | Target | Seed 42 | Seed 7 | Seed 2024 | Verdict |
 |---|---|---|---|---|---|
-| 1.  |  |  |  |  |  |
-| 2.  |  |  |  |  |  |
-| 3.  |  |  |  |  |  |
-| 4.  |  |  |  |  |  |
-| 5.  |  |  |  |  |  |
+| 1. Overall accuracy ≥ 0.65 | 0.65 | 0.933 | 0.967 | 0.933 | MET |
+| 2. Macro F1 ≥ 0.60 | 0.60 | 0.933 | 0.967 | 0.931 | MET |
+| 3. F1 — `analysis` ≥ 0.65 | 0.65 | 0.909 | 0.952 | 0.952 | MET |
+| 4. F1 — `hot_take` ≥ 0.55 | 0.55 | 0.889 | 0.947 | 0.889 | MET |
+| 5. F1 — `reaction` ≥ 0.55 | 0.55 | 1.000 | 1.000 | 0.952 | MET |
 
 ### Confusion matrix
 
-<!-- ⚠️ TYPED AS A MARKDOWN TABLE. The notebook prints one ready to paste.
-     An image of a matrix earns nothing. -->
+<!-- Seed 42 — rows are true labels, columns are model predictions. -->
 
-| true \ predicted |  |  |  |
+| true \ predicted | analysis | hot_take | reaction |
 |---|---|---|---|
-| **** |  |  |  |
-| **** |  |  |  |
-| **** |  |  |  |
+| **analysis** | 10 | 0 | 0 |
+| **hot_take** | 2 | 8 | 0 |
+| **reaction** | 0 | 0 | 10 |
 
-**My biggest off-diagonal number, and what it means:**
-<!-- Not "the model made mistakes" — WHICH boundary it didn't learn, and which
-     direction. "7 real analysis posts were called hot_take and only 3 went the
-     other way" is a direction, not just an error rate. -->
+**My biggest off-diagonal number, and what it means:** 2 real `hot_take` posts were called `analysis` and zero went the other direction — the model leans toward `analysis` on borderline posts, which matches the labeling challenge: posts that make confident claims using numbers (but don't actually argue from them) look like `analysis` to the model even when the right call is `hot_take`.
 
 
 
@@ -295,27 +301,17 @@ The `request` label is not in the original five acceptance criteria, which were 
 
 ## Verdicts and Diagnoses
 
-<!-- MET or MISSED against LAST UNIT's target. The target has to hold across
-     all three seeds, not turn up sometimes. -->
-
 | # | Criterion | Target | Verdict | How I decided |
 |---|---|---|---|---|
-| 1 |  |  |  |  |
-| 2 |  |  |  |  |
-| 3 |  |  |  |  |
-| 4 |  |  |  |  |
-| 5 |  |  |  |  |
+| 1 | Overall accuracy ≥ 0.65 | 0.65 | **MET** | Lowest across three seeds was 0.933 — 28 points above target. Holds on all three seeds. |
+| 2 | Macro F1 ≥ 0.60 | 0.60 | **MET** | Lowest was 0.931 — well above target. No label collapsed. |
+| 3 | F1 — `analysis` ≥ 0.65 | 0.65 | **MET** | Lowest was 0.909. Model learned the factual-evidence signal well. |
+| 4 | F1 — `hot_take` ≥ 0.55 | 0.55 | **MET** | Lowest was 0.889, but it's also the label with the biggest spread (0.058) and the only one with off-diagonal errors (2 posts misread as `analysis`). Passes on all three seeds. |
+| 5 | F1 — `reaction` ≥ 0.55 | 0.55 | **MET** | Lowest was 0.952. The present-tense emotional register is the most distinct signal in the dataset. |
 
 **Diagnoses**
 
-<!-- For each miss: the cause, and how you know. The four common causes are:
-     too few examples for a label, a boundary you applied inconsistently, a
-     genuinely hard label pair, and a task the model can't reach from this
-     much data.
-
-     ⚠️ Use your agreement report as evidence. It is the only instrument you
-     have that can tell a LABELLING problem from a MODEL problem, and this
-     section is graded on whether you used it that way. -->
+All five criteria met across all three seeds, so there are no misses to diagnose. The one pattern worth noting: `hot_take` is the weakest label (spread 0.058, and the only source of confusion-matrix errors). The 2 misclassified `hot_take` posts were called `analysis` — consistent with the labeling challenge I documented in the taxonomy: posts that include numbers but don't argue from them. If the agreement report shows I applied the verifiability rule inconsistently on similar posts, that would be a labeling problem, not a model problem. The confusion matrix cannot say which it is — the agreement report is the instrument for that.
 
 
 

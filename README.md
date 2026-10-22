@@ -457,4 +457,40 @@ All five criteria met on all three seeds, spread 0.039 — stable and within thr
 
 ---
 
+## Unit 6 Stretch Feature 2 — Per-Label Error Write-Up
+
+**Worst label:** `hot_take` — lowest minimum F1 across seeds (0.923), and the only label producing off-diagonal errors on more than one seed.
+
+**Error summary across all three seeds:**
+
+| Seed | hot_take errors | Direction |
+|---|---|---|
+| 42 | 2 of 14 | 1 → `analysis`, 1 → `reaction` |
+| 7 | 0 of 14 | — |
+| 2024 | 0 of 14 | — |
+
+`reaction` also had 2 errors on seed 2024 (2 → `hot_take`), but `hot_take` has the higher spread (0.077 vs 0.111 for `reaction`) and is the only label confused with two different neighbors. It is the worst by that measure.
+
+---
+
+**Direction 1: `hot_take` called `analysis` (seed 42, 1 post)**
+
+These posts contain a number, but the number is not doing argumentative work — it is establishing the writer's credibility or adding color to an opinion they have already formed. Examples from the training data with this shape: *"Been to 45 countries and I can say overland travel is always more interesting than flying"* — 45 is a credential, not evidence that overland is better. The model has learned that numbers correlate with `analysis`, and it applies that heuristic even when the number is decorative. What these examples have in common: a number appears early, attached to the writer's experience rather than a claim; the conclusion follows from the writer's conviction, not from the number.
+
+The fix that was attempted — adding 30 `hot_take` posts with decorative numbers — appears to have worked on seed 42 specifically (1 error instead of 2 before the dataset grew), but the model has not fully generalized the distinction.
+
+---
+
+**Direction 2: `hot_take` called `reaction` (seed 42, 1 post)**
+
+These posts are written in a heated, first-person, present-tense register that overlaps with how `reaction` posts sound. The difference the taxonomy requires: a `reaction` post is about something that just happened to the writer; a `hot_take` post asserts something general about the world. A `hot_take` written in a passionate voice — *"I have taken 4 cruises and I will not take a fifth. You are in a mall that floats past things you have no time to see"* — can read as a personal experience post rather than a general claim, especially when the general claim is embedded in a first-person narrative.
+
+What these examples have in common: the verb tense is past or present ("I have taken", "I'm done with"), the subject is the writer's own experience, and the general claim is implicit rather than stated as a universal. The model is reading the experiential surface rather than the evaluative intent.
+
+---
+
+**What the two directions have in common:** Both failure modes involve `hot_take` posts that borrow surface features from another label — numbers from `analysis`, first-person voice from `reaction` — while the defining feature of `hot_take` (an unsupported general claim) is either implicit or buried. The model has not learned to ask "is a conclusion being asserted without evidence?" — it has learned to ask "does this look like the other thing?" More training examples that isolate the argumentative structure, rather than the surface register, would be the next step.
+
+---
+
 📖 **How to run this project: [RUNNING.md](RUNNING.md)**

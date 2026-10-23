@@ -399,42 +399,6 @@ All five criteria met on all three seeds, spread 0.039 — stable and within thr
 
 **The gap between what I meant my labels to capture and what the model learned:** I defined `hot_take` as a confident claim with no supporting evidence — distinguished from `analysis` by whether the fact carries the argument and from `reaction` by whether it's about the writer's immediate experience. The confusion matrix shows the model hasn't fully internalized either distinction: 1 `hot_take` leaked to `analysis` (decorative number read as evidence) and 1 leaked to `reaction` (heated first-person voice read as immediacy). The model learned voice and surface features rather than the argumentative function of those features.
 
-
-
-<!-- ═════════════════════════════════════════════════════════════════════
-
-     SUBMISSION CHECKLIST — unit 5
-
-       [ ] criteria.md has five numbered criteria, each naming a NUMBER
-       [ ] Each has a reason underneath tied to your data or taxonomy
-       [ ] labels.csv: at least 150 rows, text/label/note, ONE file not split
-       [ ] No label above 70%
-       [ ] All five unit 5 sections have real content
-       [ ] Label Taxonomy includes the decision rule for your hardest boundary
-       [ ] The Dataset includes three hard cases
-       [ ] results.json and test_split.csv committed (the notebook does this)
-       [ ] At least four new commits
-       [ ] Repository URL submitted — WRITE IT DOWN
-
-     SUBMISSION CHECKLIST — unit 6
-
-       [ ] Baseline vs. Trained table, with your prediction written beforehand
-       [ ] Run Log — Before, five criteria across three seeds
-       [ ] Confusion matrix TYPED AS A MARKDOWN TABLE
-       [ ] A verdict on every criterion
-       [ ] A diagnosis for every miss, using the agreement report as evidence
-       [ ] Agreement Report with every disagreement adjudicated
-       [ ] One improvement, with Run Log — After
-       [ ] What's Still Broken
-       [ ] results_three_seeds_before.json, results_three_seeds_after.json,
-           baseline_results.json and
-           agreement_results.json committed
-       [ ] At least four new commits
-       [ ] The SAME repository URL as last unit
-
-     Do not delete and recreate this repository.
-     ═════════════════════════════════════════════════════════════════════ -->
-
 ---
 
 ## Unit 6 Stretch Feature 1 — Confidence Check
@@ -492,5 +456,80 @@ What these examples have in common: the verb tense is past or present ("I have t
 **What the two directions have in common:** Both failure modes involve `hot_take` posts that borrow surface features from another label — numbers from `analysis`, first-person voice from `reaction` — while the defining feature of `hot_take` (an unsupported general claim) is either implicit or buried. The model has not learned to ask "is a conclusion being asserted without evidence?" — it has learned to ask "does this look like the other thing?" More training examples that isolate the argumentative structure, rather than the surface register, would be the next step.
 
 ---
+
+---
+
+## Unit 6 Stretch Feature 3 — Second Measured Improvement
+
+**What I changed:** Increased training epochs from 3 to 5. Same dataset (335 rows, 4 labels), same split, same seeds — only the number of passes through the training data changed.
+
+**Which diagnosis pointed at it:** The error write-up (Stretch Feature 2) identified that both `hot_take` failure modes — calling a post `analysis` or calling it `reaction` — require the model to learn an argumentative distinction rather than a surface one. Surface features (numbers, first-person voice) are learned quickly; the underlying rule ("does the number carry the argument?") takes more training signal to internalize. Increasing epochs gives the model more passes to reinforce that distinction, without requiring any data changes.
+
+### Run Log — Improvement 2
+
+<!-- EPOCHS 3 → 5. Same 335-row dataset. results_three_seeds_improvement2.json. -->
+
+| Measure | Seed 42 | Seed 7 | Seed 2024 | Spread |
+|---|---|---|---|---|
+| Overall accuracy | 0.980 | 1.000 | 0.980 | 0.020 |
+| Macro F1 | 0.979 | 1.000 | 0.978 | 0.022 |
+| F1 — `analysis` | 1.000 | 1.000 | 1.000 | 0.000 |
+| F1 — `hot_take` | 0.963 | 1.000 | 0.966 | 0.037 |
+| F1 — `reaction` | 0.952 | 1.000 | 0.947 | 0.053 |
+| F1 — `request` | 1.000 | 1.000 | 1.000 | 0.000 |
+
+| Criterion | Target | Seed 42 | Seed 7 | Seed 2024 | Verdict |
+|---|---|---|---|---|---|
+| 1. Overall accuracy | ≥ 0.65 | 0.980 | 1.000 | 0.980 | MET |
+| 2. Macro F1 | ≥ 0.60 | 0.979 | 1.000 | 0.978 | MET |
+| 3. F1 — `analysis` | ≥ 0.65 | 1.000 | 1.000 | 1.000 | MET |
+| 4. F1 — `hot_take` | ≥ 0.55 | 0.963 | 1.000 | 0.966 | MET |
+| 5. F1 — `reaction` | ≥ 0.55 | 0.952 | 1.000 | 0.947 | MET |
+
+**Did it help, and how do I know:**
+
+Yes — measurably. Compared to the Run Log — After (EPOCHS=3 on the same 335-row dataset):
+
+- **Overall accuracy** rose from 0.961 to 0.980 on seeds 42 and 2024; seed 7 stayed at 1.000.
+- **`hot_take` F1** improved from 0.923 → 0.963 (seed 42) and 0.933 → 0.966 (seed 2024).
+- **`reaction` F1** improved from 0.889 → 0.947 on seed 2024 (the worst-case seed).
+- **Spread** dropped from 0.039 to 0.020 — the model became more consistent across random splits.
+
+The confusion matrix for seed 42 still shows 1 `hot_take`→`reaction` error, meaning Direction 2 (heated first-person voice) is not fully resolved. But the improvement is genuine and reproducible: two additional epochs did real work on the harder boundary.
+
+---
+<!-- ═════════════════════════════════════════════════════════════════════
+
+     SUBMISSION CHECKLIST — unit 5
+
+       [ ] criteria.md has five numbered criteria, each naming a NUMBER
+       [ ] Each has a reason underneath tied to your data or taxonomy
+       [ ] labels.csv: at least 150 rows, text/label/note, ONE file not split
+       [ ] No label above 70%
+       [ ] All five unit 5 sections have real content
+       [ ] Label Taxonomy includes the decision rule for your hardest boundary
+       [ ] The Dataset includes three hard cases
+       [ ] results.json and test_split.csv committed (the notebook does this)
+       [ ] At least four new commits
+       [ ] Repository URL submitted — WRITE IT DOWN
+
+     SUBMISSION CHECKLIST — unit 6
+
+       [ ] Baseline vs. Trained table, with your prediction written beforehand
+       [ ] Run Log — Before, five criteria across three seeds
+       [ ] Confusion matrix TYPED AS A MARKDOWN TABLE
+       [ ] A verdict on every criterion
+       [ ] A diagnosis for every miss, using the agreement report as evidence
+       [ ] Agreement Report with every disagreement adjudicated
+       [ ] One improvement, with Run Log — After
+       [ ] What's Still Broken
+       [ ] results_three_seeds_before.json, results_three_seeds_after.json,
+           baseline_results.json and
+           agreement_results.json committed
+       [ ] At least four new commits
+       [ ] The SAME repository URL as last unit
+
+     Do not delete and recreate this repository.
+     ═════════════════════════════════════════════════════════════════════ -->
 
 📖 **How to run this project: [RUNNING.md](RUNNING.md)**

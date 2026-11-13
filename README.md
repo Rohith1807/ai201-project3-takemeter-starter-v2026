@@ -545,3 +545,51 @@ Shape C — extend one capability. The extension is a second classification stra
 **What's out of scope**
 
 Three things I considered and decided against. First, adding a fifth label — the taxonomy is already well-calibrated and the capstone brief requires extending capability, not expanding coverage. Second, building a web interface or hosted endpoint — the assignment allows a local run path and the complexity of hosting adds nothing to what the comparison is measuring. Third, retraining the fine-tuned model on any new data — the DistilBERT side of the comparison is frozen at its current state so that any difference in output is attributable to the classifier strategy, not to different training data.
+
+**Run path**
+
+Path B — local with logs. Single command: `python classify.py`. Full setup and environment requirements are in RUNNING.md under "Capstone — classify.py".
+
+**Instrumentation**
+
+Every run appends one JSON record per post to `classify_log.jsonl`. Each record has named fields: `timestamp` (ISO 8601 UTC), `text` (the post), `ground_truth` (the label from the CSV), `distilbert.label`, `distilbert.confidence`, `distilbert.latency_ms`, `gemini.label`, `gemini.latency_ms`, `gemini.input_tokens`, `gemini.output_tokens`, `gemini_correct`, `distilbert_correct`, and `agreement`. Failed calls write `gemini.error`, `gemini.message`, and `error: true` instead of the normal fields, so a failed call is never a silent absence.
+
+Ten entries from the run on `test_split.csv` (51 posts, 2026-11-13):
+
+```
+{"timestamp":"2026-11-13T22:44:05.240508+00:00","text":"Sitting in an airport in transit, 4 hours until my next flight, and I have decided this terminal is actually a perfectly acceptable place to exist for the afternoon.","ground_truth":"reaction","distilbert":{"label":"reaction","confidence":0.63,"latency_ms":67.5},"distilbert_correct":true,"gemini":{"label":"reaction","latency_ms":1240.2,"input_tokens":255,"output_tokens":1},"gemini_correct":true,"agreement":true}
+{"timestamp":"2026-11-13T22:44:06.548670+00:00","text":"I am writing this from a train to Positano and I keep looking up from my phone because I do not want to miss what is outside the window.","ground_truth":"reaction","distilbert":{"label":"reaction","confidence":0.5448,"latency_ms":33.3},"distilbert_correct":true,"gemini":{"label":"reaction","latency_ms":612.7,"input_tokens":253,"output_tokens":1},"gemini_correct":true,"agreement":true}
+{"timestamp":"2026-11-13T22:44:11.699004+00:00","text":"In the Sahara last night watching stars I have never seen from a home city. The silence was so complete it had a texture to it.","ground_truth":"reaction","distilbert":{"label":"reaction","confidence":0.6386,"latency_ms":22.4},"distilbert_correct":true,"gemini":{"label":"reaction","latency_ms":718.2,"input_tokens":250,"output_tokens":1},"gemini_correct":true,"agreement":true}
+{"timestamp":"2026-11-13T22:44:16.880303+00:00","text":"What language do I need in Morocco? I have basic French. Is that enough outside the big cities?","ground_truth":"request","distilbert":{"label":"request","confidence":0.8452,"latency_ms":18.8},"distilbert_correct":true,"gemini":{"label":"request","latency_ms":485.7,"input_tokens":243,"output_tokens":1},"gemini_correct":true,"agreement":true}
+{"timestamp":"2026-11-13T22:44:21.866174+00:00","text":"Compared taxi apps in Bangkok: Grab, Bolt, and InDrive. Over 20 rides, Grab averaged 180 THB, Bolt 165 THB, InDrive 140 THB. InDrive lets you negotiate the fare, which explains the lower average.","ground_truth":"analysis","distilbert":{"label":"analysis","confidence":0.689,"latency_ms":30.2},"distilbert_correct":true,"gemini":{"label":"analysis","latency_ms":552.1,"input_tokens":282,"output_tokens":1},"gemini_correct":true,"agreement":true}
+{"timestamp":"2026-11-13T22:44:26.918821+00:00","text":"Compared a 10-day Morocco itinerary done independently vs guided tour. Independent: $780 total. Guided tour: $2,100. The tour covered identical sites.","ground_truth":"analysis","distilbert":{"label":"analysis","confidence":0.7264,"latency_ms":25.0},"distilbert_correct":true,"gemini":{"label":"analysis","latency_ms":619.7,"input_tokens":261,"output_tokens":1},"gemini_correct":true,"agreement":true}
+{"timestamp":"2026-11-13T22:44:32.038898+00:00","text":"London is an incredible city to live in and a mediocre one to visit. The tourist circuit is worse than a dozen European capitals at half the cost.","ground_truth":"hot_take","distilbert":{"label":"hot_take","confidence":0.686,"latency_ms":24.0},"distilbert_correct":true,"gemini":{"label":"hot_take","latency_ms":523.6,"input_tokens":252,"output_tokens":3},"gemini_correct":true,"agreement":true}
+{"timestamp":"2026-11-13T22:44:37.062833+00:00","text":"Checked correlation between Booking.com and TripAdvisor scores for 25 hotels I have stayed at. The platforms disagreed by more than 0.5 points on 9 of 25. Neither is consistently more accurate.","ground_truth":"analysis","distilbert":{"label":"analysis","confidence":0.6437,"latency_ms":28.7},"distilbert_correct":true,"gemini":{"label":"analysis","latency_ms":2157.8,"input_tokens":266,"output_tokens":1},"gemini_correct":true,"agreement":true}
+{"timestamp":"2026-11-13T22:44:43.722590+00:00","text":"You are not discovering anything. The concept of travel discovery ended when GPS maps became free. What you are doing is tourism, and that is completely fine.","ground_truth":"hot_take","distilbert":{"label":"hot_take","confidence":0.7021,"latency_ms":26.9},"distilbert_correct":true,"gemini":{"label":"hot_take","latency_ms":712.8,"input_tokens":253,"output_tokens":3},"gemini_correct":true,"agreement":true}
+{"timestamp":"2026-11-13T22:44:48.936066+00:00","text":"Is it worth taking the slow boat from Thailand to Laos, or is it 2 days of not much that I should skip?","ground_truth":"request","distilbert":{"label":"request","confidence":0.8505,"latency_ms":34.5},"distilbert_correct":true,"gemini":{"label":"request","latency_ms":926.3,"input_tokens":248,"output_tokens":1},"gemini_correct":true,"agreement":true}
+{"timestamp":"2026-11-13T22:44:54.363272+00:00","text":"Checked the 2025 Lonely Planet top 10 against their 2020 list. 6 of 10 cities appeared in both. The 4 new entries were all smaller cities and all had dramatically cheaper accommodation than the repeats.","ground_truth":"analysis","distilbert":{"label":"analysis","confidence":0.5722,"latency_ms":39.8},"distilbert_correct":true,"gemini":{"label":"analysis","latency_ms":516.4,"input_tokens":274,"output_tokens":1},"gemini_correct":true,"agreement":true}
+```
+
+One failed run (invalid API key, 2026-11-13 — `error: true` field confirms it was recorded, not silently dropped):
+
+```
+{"timestamp":"2026-11-13T22:53:54.842347+00:00","text":"test post for error logging","ground_truth":"unknown","gemini":{"error":"ClientError","message":"400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'API key not valid. Please pass a valid API key.', 'status': 'INVALID_ARGUMENT'...}}"},"gemini_correct":null,"error":true}
+```
+
+**What It Costs**
+
+Measured on 10 posts from `data/calibration_ten.csv` using `python classify.py --data data/calibration_ten.csv --no-distilbert --log calibration_log.jsonl` (Gemini only, to isolate API cost from local compute):
+
+| Measure | Value |
+|---|---|
+| Posts | 10 |
+| Input tokens | 2,493 |
+| Output tokens | 18 |
+| Total tokens | 2,511 |
+| Avg input tokens/post | 249 |
+| Avg output tokens/post | 1.8 |
+| Estimated cost (10 posts) | $0.000257 |
+| Cost per post | $0.0000257 |
+| Avg Gemini latency | 758 ms/post |
+
+Pricing used: gemini-3.5-flash-lite at $0.10/1M input tokens, $0.40/1M output tokens. The full 51-post run on `test_split.csv` cost $0.001338 measured the same way (13,076 input / 77 output tokens). DistilBERT adds no API cost — it runs locally in ~25–40 ms per post on CPU. The real cost of one full run is under two tenths of a cent.

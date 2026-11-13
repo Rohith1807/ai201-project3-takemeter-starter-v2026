@@ -157,25 +157,36 @@ def classify_one(text, ground_truth, clf, gemini_client):
     }
 
     if clf is not None:
-        db_label, db_conf, db_ms = run_distilbert(clf, text)
-        record["distilbert"] = {
-            "label": db_label,
-            "confidence": db_conf,
-            "latency_ms": db_ms,
+        try:
+            db_label, db_conf, db_ms = run_distilbert(clf, text)
+            record["distilbert"] = {
+                "label": db_label,
+                "confidence": db_conf,
+                "latency_ms": db_ms,
+            }
+            record["distilbert_correct"] = (db_label == ground_truth)
+        except Exception as exc:
+            record["distilbert"] = {"error": str(exc)}
+            record["distilbert_correct"] = None
+
+    try:
+        gem_label, gem_ms, in_tok, out_tok = run_gemini(gemini_client, text)
+        record["gemini"] = {
+            "label": gem_label,
+            "latency_ms": gem_ms,
+            "input_tokens": in_tok,
+            "output_tokens": out_tok,
         }
-        record["distilbert_correct"] = (db_label == ground_truth)
-
-    gem_label, gem_ms, in_tok, out_tok = run_gemini(gemini_client, text)
-    record["gemini"] = {
-        "label": gem_label,
-        "latency_ms": gem_ms,
-        "input_tokens": in_tok,
-        "output_tokens": out_tok,
-    }
-    record["gemini_correct"] = (gem_label == ground_truth)
-
-    if clf is not None:
-        record["agreement"] = (db_label == gem_label)
+        record["gemini_correct"] = (gem_label == ground_truth)
+        if clf is not None and record.get("distilbert_correct") is not None:
+            record["agreement"] = (db_label == gem_label)
+    except Exception as exc:
+        record["gemini"] = {
+            "error": type(exc).__name__,
+            "message": str(exc)[:300],
+        }
+        record["gemini_correct"] = None
+        record["error"] = True
 
     return record
 
@@ -186,7 +197,11 @@ def print_summary(records):
         print("No records.")
         return
 
-    has_db = any("distilbert" in r for r in records)
+    errors = sum(1 for r in records if r.get("error"))
+    if errors:
+        print(f"[warn] {errors} record(s) logged an error — check classify_log.jsonl")
+
+    has_db = any("distilbert" in r and "error" not in r["distilbert"] for r in records)
     gem_ok = sum(1 for r in records if r.get("gemini_correct"))
 
     print(f"\n{'─'*52}")
@@ -211,7 +226,8 @@ def print_summary(records):
     in_total = sum(r["gemini"].get("input_tokens") or 0 for r in records)
     out_total = sum(r["gemini"].get("output_tokens") or 0 for r in records)
     cost = (in_total * 0.10 + out_total * 0.40) / 1_000_000
-    avg_lat = sum(r["gemini"]["latency_ms"] for r in records) / n
+    lat_records = [r for r in records if "latency_ms" in r.get("gemini", {})]
+    avg_lat = sum(r["gemini"]["latency_ms"] for r in lat_records) / len(lat_records) if lat_records else 0
 
     print(f"\nGemini tokens    : {in_total} in / {out_total} out")
     print(f"Cost (est.)      : ${cost:.6f}  (~${cost/n*1000:.4f} per 1 000 posts)")

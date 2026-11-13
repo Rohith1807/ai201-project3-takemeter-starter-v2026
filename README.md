@@ -593,3 +593,70 @@ Measured on 10 posts from `data/calibration_ten.csv` using `python classify.py -
 | Avg Gemini latency | 758 ms/post |
 
 Pricing used: gemini-3.5-flash-lite at $0.10/1M input tokens, $0.40/1M output tokens. The full 51-post run on `test_split.csv` cost $0.001338 measured the same way (13,076 input / 77 output tokens). DistilBERT adds no API cost — it runs locally in ~25–40 ms per post on CPU. The real cost of one full run is under two tenths of a cent.
+
+---
+
+**Capstone Acceptance Test Run Log**
+
+Three trials per criterion. C1/C3/C5 used 15-post subsets of `test_split.csv`; C2 used 10-post subsets with both classifiers running; C4 used a deliberately invalid API key on a single post. The original full 51-post run (committed in `classify_log.jsonl`) is cited alongside as the reference measurement for C1 and C3.
+
+| Criterion | Target | Run 1 | Run 2 | Run 3 | Verdict |
+|---|---|---|---|---|---|
+| C1. Gemini accuracy on held-out posts | ≥ 0.75 | 1.000 (15/15) | 0.933 (14/15) | 0.933 (14/15) | **MET** |
+| C2. Gemini–DistilBERT agreement rate | ≥ 0.80 | 1.000 (10/10) | 1.000 (10/10) | 1.000 (10/10) | **MET** |
+| C3. Estimated cost — 51 posts | ≤ $0.005 | $0.001338 (ref run) | ~$0.00135 (scaled) | ~$0.00135 (scaled) | **MET** |
+| C4. Invalid key → error record + clean exit | error:true in log, no traceback | pass | pass | pass | **MET** |
+| C5. All required fields non-null (success records) | 0 missing fields | 0/10 records | 0/10 records | 0/10 records | **MET** |
+
+---
+
+**Pasted evidence — real output from each criterion**
+
+*C1 — Gemini accuracy. Source: `classify.py` → `classify_one()` / `run_gemini()`. File: `trial1.jsonl` (Run 1, 15 posts).*
+
+```
+{"timestamp": "2026-11-13T23:29:45.148130+00:00", "text": "Sitting in an airport in transit, 4 hours until my next flight, and I have decided this terminal is actually a perfectly acceptable place to exist for the afternoon.", "ground_truth": "reaction", "gemini": {"label": "reaction", "latency_ms": 993.2, "input_tokens": 255, "output_tokens": 1}, "gemini_correct": true}
+{"timestamp": "2026-11-13T23:29:46.145359+00:00", "text": "I am writing this from a train to Positano and I keep looking up from my phone because I do not want to miss what is outside the window.", "ground_truth": "reaction", "gemini": {"label": "reaction", "latency_ms": 812.9, "input_tokens": 253, "output_tokens": 1}, "gemini_correct": true}
+{"timestamp": "2026-11-13T23:30:02.003226+00:00", "text": "Compared taxi apps in Bangkok: Grab, Bolt, and InDrive. Over 20 rides, Grab averaged 180 THB, Bolt 165 THB, InDrive 140 THB. InDrive lets you negotiate the fare, which explains the lower average.", "ground_truth": "analysis", "gemini": {"label": "analysis", "latency_ms": 604.8, "input_tokens": 282, "output_tokens": 1}, "gemini_correct": true}
+```
+
+Terminal summary (Run 1): `Gemini accuracy  : 1.000  (15/15)`
+
+*C2 — Agreement rate. Source: `classify.py` → `classify_one()`. File: `both1.jsonl` (Run 1, 10 posts, both classifiers).*
+
+```
+{"timestamp": "2026-11-13T23:34:49.650042+00:00", "text": "Sitting in an airport in transit, 4 hours until my next flight, and I have decided this terminal is actually a perfectly acceptable place to exist for the afternoon.", "ground_truth": "reaction", "distilbert": {"label": "reaction", "confidence": 0.63, "latency_ms": 486.1}, "distilbert_correct": true, "gemini": {"label": "reaction", "latency_ms": 1332.6, "input_tokens": 255, "output_tokens": 1}, "gemini_correct": true, "agreement": true}
+```
+
+Terminal summary (Run 1): `Agreement rate   : 1.000  (10/10)`
+
+*C3 — Cost per run. Source: `classify.py` → `print_summary()`. Terminal output from the reference 51-post run on `test_split.csv`.*
+
+```
+Gemini tokens    : 13076 in / 77 out
+Cost (est.)      : $0.001338  (~$0.0262 per 1 000 posts)
+Avg latency      : 758 ms/post
+```
+
+*C4 — Error handling. Source: `classify.py` → `classify_one()` exception branch. File: `err1.jsonl` (Run 1, invalid key `INVALID_KEY_FOR_C4_TEST`).*
+
+```
+{"timestamp": "2026-11-13T23:33:58.634866+00:00", "text": "Sitting in an airport in transit, 4 hours until my next flight, and I have decided this terminal is actually a perfectly acceptable place to exist for the afternoon.", "ground_truth": "reaction", "gemini": {"error": "ClientError", "message": "400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'API key not valid. Please pass a valid API key.', 'status': 'INVALID_ARGUMENT'...}}"}, "gemini_correct": null, "error": true}
+```
+
+Terminal output (Run 1): `[warn] 1 record(s) logged an error — check classify_log.jsonl` — no traceback, process exited 0.
+
+*C5 — Schema completeness. Source: `classify.py` → `classify_one()`. File: `both1.jsonl` (Run 1, 10 records; schema check ran against all three runs).*
+
+```
+{"timestamp": "2026-11-13T23:34:49.650042+00:00", "text": "...", "ground_truth": "reaction", "distilbert": {"label": "reaction", "confidence": 0.63, "latency_ms": 486.1}, "distilbert_correct": true, "gemini": {"label": "reaction", "latency_ms": 1332.6, "input_tokens": 255, "output_tokens": 1}, "gemini_correct": true, "agreement": true}
+```
+
+Schema check result: `Records: 10, total missing fields: 0` — repeated for all three trial files.
+
+---
+
+**Diagnoses**
+
+All five criteria were met across every trial. The one miss-adjacent observation is that Run 2 and Run 3 of C1 came in at 0.933 rather than 1.000 — Gemini misclassified one `hot_take` post in both runs. The post is a first-person confident claim about travel that also contains a present-tense observation about a recent experience, making it genuinely ambiguous between `hot_take` and `reaction`. This boundary (`hot_take` vs. `reaction`) is the same one that proved hardest for DistilBERT; both classifiers struggle with posts that mix confident claim with present-tense witness. The misclassification does not breach the 0.75 target, but it confirms that the boundary is a real source of variance, not a data artefact.
+

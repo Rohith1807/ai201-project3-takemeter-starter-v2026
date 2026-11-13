@@ -118,14 +118,26 @@ def run_distilbert(clf, text):
     return best["label"], round(best["score"], 4), round(ms, 1)
 
 
+GEMINI_MODEL = "gemini-3.5-flash-lite"
+# Free tier: 15 req/min → 1 request every 4.5 s to stay safely under the limit.
+GEMINI_MIN_INTERVAL = 4.5
+_last_gemini_call = 0.0
+
+
 def run_gemini(client, text):
     """Returns (label, latency_ms, input_tokens, output_tokens)."""
+    global _last_gemini_call
+    wait = GEMINI_MIN_INTERVAL - (time.perf_counter() - _last_gemini_call)
+    if wait > 0:
+        time.sleep(wait)
+
     prompt = GEMINI_PROMPT_TEMPLATE.format(text=text, **DEFINITIONS)
     t0 = time.perf_counter()
     response = client.models.generate_content(
-        model="gemini-1.5-flash",
+        model=GEMINI_MODEL,
         contents=prompt,
     )
+    _last_gemini_call = time.perf_counter()
     ms = (time.perf_counter() - t0) * 1000
 
     raw = response.text.strip().lower().replace("-", "_").replace(" ", "_")
@@ -195,10 +207,10 @@ def print_summary(records):
         ok = sum(1 for r in sub if r.get("gemini_correct"))
         print(f"  {label:<12} {ok/len(sub):.3f}  (n={len(sub)})")
 
-    # Token cost — gemini-1.5-flash: $0.075/1M input, $0.30/1M output
+    # Token cost — gemini-3.5-flash-lite: $0.10/1M input, $0.40/1M output
     in_total = sum(r["gemini"].get("input_tokens") or 0 for r in records)
     out_total = sum(r["gemini"].get("output_tokens") or 0 for r in records)
-    cost = (in_total * 0.075 + out_total * 0.30) / 1_000_000
+    cost = (in_total * 0.10 + out_total * 0.40) / 1_000_000
     avg_lat = sum(r["gemini"]["latency_ms"] for r in records) / n
 
     print(f"\nGemini tokens    : {in_total} in / {out_total} out")

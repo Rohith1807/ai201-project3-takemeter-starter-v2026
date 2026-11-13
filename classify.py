@@ -70,6 +70,13 @@ You are a classifier for posts from r/travel. Apply exactly one of these four la
   reaction — {reaction}
   request  — {request}
 
+Decision rule for analysis vs. hot_take: a number is evidence when it \
+quantifies a measured difference between two things (e.g., "Grab averaged \
+180 THB vs. InDrive at 140 THB"). A number is credentialing when it \
+describes how often the writer did something before asserting a preference \
+(e.g., "I took 50+ buses" before saying which country is best). The first \
+is analysis; the second is hot_take.
+
 Post to classify:
 {text}
 

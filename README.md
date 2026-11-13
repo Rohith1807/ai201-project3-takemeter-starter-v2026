@@ -656,7 +656,49 @@ Schema check result: `Records: 10, total missing fields: 0` — repeated for all
 
 ---
 
-**Diagnoses**
+**Verdicts and Diagnoses**
 
-All five criteria were met across every trial. The one miss-adjacent observation is that Run 2 and Run 3 of C1 came in at 0.933 rather than 1.000 — Gemini misclassified one `hot_take` post in both runs. The post is a first-person confident claim about travel that also contains a present-tense observation about a recent experience, making it genuinely ambiguous between `hot_take` and `reaction`. This boundary (`hot_take` vs. `reaction`) is the same one that proved hardest for DistilBERT; both classifiers struggle with posts that mix confident claim with present-tense witness. The misclassification does not breach the 0.75 target, but it confirms that the boundary is a real source of variance, not a data artefact.
+All five criteria were met. Targets were met in every trial, but C1 and C2 were set low enough that the system cleared them with significant headroom — honest assessment below.
+
+*C1 — MET.* Runs: 1.000 / 0.933 / 0.933. Target was 0.75; the minimum across three runs was 0.933. The two misses in Runs 2 and 3 were the same post both times: "Took 50+ long-distance buses in South America. The ones worth taking are in Argentina and Chile. Everywhere else is an endurance test." Ground truth: `hot_take`. Gemini classified it as `analysis`.
+
+Diagnosis — stage: `run_gemini()`, specifically the prompt template. Mechanism: the `analysis` definition includes "a count" as an example of a qualifying fact ("a price, a count, a measured time…"). Gemini read "50+" as a count that supports the claim and tipped toward `analysis`. The `hot_take` definition already says "numbers that appear are credentialing, not evidence," but without an explicit contrast rule, the `analysis` definition overrode it. The post does not quantify any measured comparison — it asserts a preference grounded in experience, which is the hallmark of `hot_take`. The two definitions needed a tiebreaker, not stronger wording of either one in isolation.
+
+*C2 — MET.* Runs: 1.000 / 1.000 / 1.000. Target was 0.80; the system was at ceiling on every trial. The target was too loose.
+
+*C3 — MET.* Original full run: $0.001338 for 51 posts. The $0.005 target was a 3.7× buffer above the observed cost. That buffer was intentional (to absorb prompt changes), and the improvement below validates it — the revised prompt increased cost per run by ~39%, to ~$0.00187, still well within the target.
+
+*C4 — MET.* All three invalid-key trials wrote a structured error record and exited cleanly. The target was binary and appropriate.
+
+*C5 — MET.* Zero missing fields across all three trial files (10 records each). The target was correct.
+
+**Were the targets set low?** Yes, for C1 and C2. A target of 0.75 for C1 is barely above a majority classifier in a 4-class problem; the system hit 0.933 at minimum. C2 at 0.80 was cleared by 20 points on every trial. The targets I would tighten: C1 to ≥ 0.90 (the system is consistently above 0.93 on the original prompt, and the improvement below pushes it to 1.000); C2 to ≥ 0.90.
+
+---
+
+**Improvement: decision rule for evidential vs. credentialing numbers**
+
+The C1 diagnosis points to one stage and one mechanism. The fix is a tiebreaker sentence added directly to the prompt, before the post text, distinguishing a number that quantifies a comparison from a number that establishes the writer's experience.
+
+Added to `GEMINI_PROMPT_TEMPLATE` in `classify.py`:
+
+```
+Decision rule for analysis vs. hot_take: a number is evidence when it
+quantifies a measured difference between two things (e.g., "Grab averaged
+180 THB vs. InDrive at 140 THB"). A number is credentialing when it
+describes how often the writer did something before asserting a preference
+(e.g., "I took 50+ buses" before saying which country is best). The first
+is analysis; the second is hot_take.
+```
+
+**Before and after — C1 Gemini accuracy (15 posts, 3 trials each):**
+
+| | Target | Run 1 | Run 2 | Run 3 | Verdict |
+|---|---|---|---|---|---|
+| **Before** (original prompt) | ≥ 0.75 | 1.000 (15/15) | 0.933 (14/15) | 0.933 (14/15) | MET |
+| **After** (improved prompt) | ≥ 0.75 | 1.000 (15/15) | 1.000 (15/15) | 1.000 (15/15) | MET |
+
+The previously misclassified `hot_take` post classified correctly in all three improved runs. The improvement eliminated the variance.
+
+**Trade-off:** The decision rule adds ~102 tokens to every prompt (258.7 → 360.7 input tokens/post, a 39% increase). Cost for a 51-post run rises from ~$0.00135 to ~$0.00187 — still well inside C3's $0.005 ceiling. Accuracy on `analysis` posts was unchanged (1.000 in both conditions). No regressions observed on any other label across the three improved trials.
 

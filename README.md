@@ -702,3 +702,47 @@ The previously misclassified `hot_take` post classified correctly in all three i
 
 **Trade-off:** The decision rule adds ~102 tokens to every prompt (258.7 → 360.7 input tokens/post, a 39% increase). Cost for a 51-post run rises from ~$0.00135 to ~$0.00187 — still well inside C3's $0.005 ceiling. Accuracy on `analysis` posts was unchanged (1.000 in both conditions). No regressions observed on any other label across the three improved trials.
 
+---
+
+**What It Costs — full accounting**
+
+Measured run with the improved prompt on `test_split.csv` (51 posts, both classifiers):
+
+| Measure | Value |
+|---|---|
+| Gemini input tokens | 18,397 (361/post × 51) |
+| Gemini output tokens | ~108 (avg 2.1/post × 51) |
+| Gemini API cost | (18,397 × $0.10 + 108 × $0.40) / 1,000,000 = **$0.001883** |
+| DistilBERT API cost | $0.00 — runs locally |
+| Cost per post (Gemini) | $0.001883 / 51 = **$0.0000369** |
+
+Arithmetic for 100 people a day, each running the full 51-post set once:
+
+> 100 runs/day × $0.001883/run = **$0.19/day** → $0.19 × 365 = **$68/year**
+
+That is the entire Gemini API bill for a hundred daily users. DistilBERT adds no incremental cost. The bottleneck at that scale is not money — it is rate limits (free tier: 15 req/min per key). At 51 posts/run × 1 request/post = 51 requests per user, 100 concurrent users would need 5,100 requests/min, which requires paid tier or key-per-user sharding. Cost per thousand posts at the improved-prompt rate: $0.0369.
+
+---
+
+**What's Still Broken**
+
+All five criteria were met. The targets that were set too low:
+
+*C1 (Gemini accuracy ≥ 0.75):* The system hit 0.933 at minimum before the prompt improvement, and 1.000 on all three trials after. The right target, given these results, is **≥ 0.90**. At 0.90 the original prompt would have been MISSED (runs of 0.933, 0.933 sit above 0.90, but just barely — a harder test set might not hold), and the prompt improvement would be what pushed it into a reliable MET. That is a more honest criterion because it would have forced the prompt fix as a requirement rather than an observation.
+
+*C2 (Agreement rate ≥ 0.80):* All three runs hit 1.000. The right target is **≥ 0.90**. At 0.90 the criterion would still be MET, but with less air between the target and the measurement. A larger or more diverse test set (the 15- and 10-post subsets used for trials are small) might reveal genuine disagreements at the taxonomy boundaries; 0.90 is tight enough to catch those.
+
+The prompt improvement was the one fix attempted. I stopped because the remaining gap is in target calibration, not in system behaviour — the system is performing correctly; the criteria just did not demand enough of it.
+
+---
+
+**What's Next**
+
+If this were real and I had another unit, the first thing I would do is build a **disagreement queue**: whenever Gemini and DistilBERT disagree on a post, write that post to a separate file for human review rather than discarding either label. That is the one step that turns the two-classifier comparison from a measurement into a feedback loop — disagreements are the highest-signal data for identifying where the taxonomy is ambiguous, and right now that signal is computed but never acted on.
+
+---
+
+**How I Used AI — Capstone**
+
+I used Claude to write `classify.py` from scratch, iteratively debug the Gemini API integration (model availability, rate-limit throttle, error record schema), and draft the RUNNING.md capstone section. For this write-up I used Claude to structure the acceptance test run log and the before/after improvement section. The decisions — which extension to build, which acceptance criteria to set and why, how to diagnose the C1 miss, and what the improvement should be — were my own; Claude executed them. All numbers in the run log and cost tables came from actual runs I triggered and captured.
+

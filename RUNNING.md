@@ -282,7 +282,7 @@ python classify.py
 
 - Python 3.11, 3.12, or 3.13 (same as the rest of the project)
 - Packages from `requirements.txt` (pandas, transformers, torch, google-genai)
-- `GOOGLE_API_KEY` with access to `gemini-1.5-flash`
+- `GOOGLE_API_KEY` with access to `gemini-3.5-flash-lite`
 
 ---
 

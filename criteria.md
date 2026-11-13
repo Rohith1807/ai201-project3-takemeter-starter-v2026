@@ -103,6 +103,111 @@ F1 for the `reaction` label must be at least 0.55 on the held-out test set.
 
 ---
 
+## Capstone — classify.py acceptance criteria
+
+Five criteria for the capstone extension (Gemini as a second classifier).
+Written before the acceptance tests are run.
+
+---
+
+### C1. Gemini zero-shot accuracy ≥ 0.75 on the held-out test set
+
+Gemini, given only the four taxonomy definitions as its prompt and no training
+examples, must correctly classify at least 75 % of the 51 posts in
+`test_split.csv`.
+
+**Why this target:**
+
+Random guessing on four balanced classes gives 0.25. The fine-tuned DistilBERT
+hit 0.980 on the same posts, but it had 200 labelled examples to learn from.
+Gemini gets only the definitions — the same text a human labeller would read
+before starting. A capable large language model applying a clear written rule
+should beat chance by a wide margin; 0.75 is the floor I'd call "the definitions
+are doing real work." Setting it higher (0.90+) would be unrealistic for a
+zero-shot classifier on boundaries like `hot_take` vs. `reaction` that require
+close reading; setting it lower (0.60) would barely distinguish the model from an
+above-chance guesser.
+
+---
+
+### C2. Gemini–DistilBERT agreement rate ≥ 0.80 on the held-out test set
+
+When both classifiers run without errors on the same post, they must agree on the
+label for at least 80 % of posts.
+
+**Why this target:**
+
+Both models are applying the same taxonomy. High agreement (≥ 80 %) means the
+two strategies are reading the same signal in the text — the definitions are
+precise enough that a trained model and a prompted LLM land on the same label
+most of the time. If agreement falls below 80 %, either the definitions are
+ambiguous enough that reasonable interpretations diverge, or one classifier is
+making systematic errors that need to be diagnosed. I chose 80 % rather than
+90 % because genuine boundary cases (posts that reasonably fit two labels) will
+produce real disagreement, and the goal is a useful check, not perfect overlap.
+
+---
+
+### C3. Estimated API cost for one full run (51 posts) ≤ $0.005
+
+The dollar cost printed at the end of `python classify.py` must be at most
+$0.005 for the default run over `test_split.csv`.
+
+**Why this target:**
+
+The observed cost from the initial run was $0.001338. The $0.005 ceiling is a
+3.7× safety margin above that baseline — tight enough to catch runaway token
+usage (for example, if a prompt change triples input tokens or the API returns
+unexpectedly verbose output), but loose enough to absorb normal variance in
+response length. Gemini-3.5-flash-lite is priced at $0.10/M input tokens and
+$0.40/M output tokens; at the current prompt length (~250 tokens per post), a
+full run costs about 0.1 of a cent. If the cost exceeds $0.005, the per-post
+token counts in the log should be audited before treating the run as routine.
+
+---
+
+### C4. Invalid API key → structured error record written and clean exit (no unhandled exception)
+
+When `classify.py` is run with an invalid or missing `GOOGLE_API_KEY`, the
+script must: (a) write at least one JSON record to the log file containing
+`"error": true` and the exception type in the `gemini` field, and (b) print a
+human-readable warning to the terminal — without raising an unhandled Python
+exception or leaving the log file in a partially-written, unparseable state.
+
+**Why this target:**
+
+An unhandled traceback mid-batch drops all subsequent records and corrupts the
+per-post chain of evidence that Path B relies on. Invalid API keys are the most
+common real-world failure (key expires, quota exhausted, copied with a trailing
+space), so this is the bad path most likely to be hit. The requirement is binary:
+either a structured error record appears in the JSONL and the process exits
+cleanly, or the criterion fails. There is no softer version — a partial record or
+a swallowed exception both fail.
+
+---
+
+### C5. Every successful record in `classify_log.jsonl` contains all required fields with non-null values
+
+A "successful" record is one where `error` is absent or `false`. Every such
+record must include: `timestamp`, `text`, `ground_truth`, `gemini.label`,
+`gemini.latency_ms`, `gemini.input_tokens`, `gemini.output_tokens`,
+`gemini_correct`; and when DistilBERT ran without error: `distilbert.label`,
+`distilbert.confidence`, `distilbert.latency_ms`, `distilbert_correct`,
+`agreement`. None of these fields may be `null`.
+
+**Why this target:**
+
+The JSONL log is the sole deliverable for Path B — there is no hosted endpoint,
+only the file as evidence. If `input_tokens` is `null` in a successful record
+(for example, because the API changed its response schema), the cost calculation
+silently undercounts. If `agreement` is missing, the agreement-rate criterion
+(C2) cannot be verified from the log alone. Schema completeness is the first
+thing to check when summary numbers look wrong, and it is verifiable by
+spot-reading any record — which makes it a real criterion, not a vague quality
+standard.
+
+---
+
 <!-- ─────────────────────────────────────────────────────────────────────────
      UNIT 6 — read this before you change anything above.
 

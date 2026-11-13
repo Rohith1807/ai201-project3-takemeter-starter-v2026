@@ -533,3 +533,15 @@ The confusion matrix for seed 42 still shows 1 `hot_take`→`reaction` error, me
      ═════════════════════════════════════════════════════════════════════ -->
 
 📖 **How to run this project: [RUNNING.md](RUNNING.md)**
+
+---
+
+## Capstone
+
+**The Shape**
+
+Shape C — extend one capability. The extension is a second classification strategy: a Gemini-based LLM classifier that runs alongside the fine-tuned DistilBERT model and produces a label for each post using only the taxonomy definitions as a prompt, with no training examples. A single script (`classify.py`) accepts posts from the command line or from `test_split.csv`, runs both classifiers, logs every result as a structured JSON record, and prints a comparison showing where the two strategies agree and where they diverge. The new capability is the second classification path and the per-post comparison it enables — not a retraining of the existing model.
+
+**What's out of scope**
+
+Three things I considered and decided against. First, adding a fifth label — the taxonomy is already well-calibrated and the capstone brief requires extending capability, not expanding coverage. Second, building a web interface or hosted endpoint — the assignment allows a local run path and the complexity of hosting adds nothing to what the comparison is measuring. Third, retraining the fine-tuned model on any new data — the DistilBERT side of the comparison is frozen at its current state so that any difference in output is attributable to the classifier strategy, not to different training data.

@@ -233,6 +233,56 @@ README has a block to fill in for each one.
 | `python baseline.py --help` | All the options |
 | Notebook: sections 1–5 | Train once, write `results.json` — **unit 5** |
 | Notebook: sections 6–7 | Three seeds and the matrix — **unit 6** |
+| `python classify.py` | Capstone: Gemini vs DistilBERT on `test_split.csv` — **capstone** |
+| `python classify.py --n 10` | Same, first 10 posts only |
+| `python classify.py --post "text"` | Classify a single post |
+| `python classify.py --no-distilbert` | Gemini only (no model needed) |
+
+---
+
+## Capstone — classify.py
+
+The capstone extension adds a second classification strategy: Gemini classifies
+the same posts your fine-tuned DistilBERT was tested on, using only the taxonomy
+definitions as the prompt (no training examples). Results are compared per post
+and logged as structured JSON.
+
+**What you need before running:**
+
+1. `GOOGLE_API_KEY` — set in your environment or in a `.env` file in this directory:
+   ```
+   GOOGLE_API_KEY=your-key-here
+   ```
+2. `google-genai` installed (already in `requirements.txt`):
+   ```
+   pip install -r requirements.txt
+   ```
+3. `test_split.csv` — written by notebook section 5. Already committed.
+4. `takemeter_out/` — the trained model, written by notebook sections 1–5.
+   If the directory is empty, re-run the notebook before running with DistilBERT.
+   Gemini-only mode (`--no-distilbert`) works without it.
+
+**Run it:**
+
+```bash
+python classify.py
+```
+
+**What it produces:**
+
+- Prints a summary: Gemini accuracy, DistilBERT accuracy, agreement rate,
+  per-label breakdown, token counts, and estimated cost.
+- Appends one JSON record per post to `classify_log.jsonl`. Each record has:
+  `timestamp`, `text`, `ground_truth`, `gemini.label`, `gemini.latency_ms`,
+  `gemini.input_tokens`, `gemini.output_tokens`, `gemini_correct`,
+  and (if DistilBERT ran) `distilbert.label`, `distilbert.confidence`,
+  `distilbert.latency_ms`, `distilbert_correct`, `agreement`.
+
+**Environment needed:**
+
+- Python 3.11, 3.12, or 3.13 (same as the rest of the project)
+- Packages from `requirements.txt` (pandas, transformers, torch, google-genai)
+- `GOOGLE_API_KEY` with access to `gemini-1.5-flash`
 
 ---
 

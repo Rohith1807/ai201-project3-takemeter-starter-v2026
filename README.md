@@ -724,6 +724,65 @@ That is the entire Gemini API bill for a hundred daily users. DistilBERT adds no
 
 ---
 
+**Stretch Feature 1 — Second Measured Improvement: condensed definitions**
+
+After the first prompt improvement (decision rule for evidential vs. credentialing numbers), Gemini scored 1.000 on the full 51-post set with no remaining behavioural errors to fix. The second improvement targets cost: condense the taxonomy definitions from their full README wording (~90 tokens of definition text per prompt) to their core distinguishing clauses (~55 tokens), while keeping the decision rule.
+
+Diagnosis: the original definitions were written for human labellers who need rich context. Gemini, given the full post and the decision rule, needs less preamble — the decisive signal for each boundary is already captured in one tight clause. Shorter definitions = fewer input tokens = lower cost per run. The risk is that removing context causes regressions on boundary posts.
+
+Change in `classify.py` `DEFINITIONS` dict: each definition trimmed by 30–40% while preserving its key distinguishing feature. Decision rule unchanged.
+
+**Before (improvement 1) and after (improvement 2) — C1 accuracy and token cost (15 posts, 3 trials each):**
+
+| | Avg input tok/post | Run 1 | Run 2 | Run 3 | Verdict |
+|---|---|---|---|---|---|
+| Improvement 1 (full defs + decision rule) | 360.7 | 1.000 | 1.000 | 1.000 | MET |
+| Improvement 2 (condensed defs + decision rule) | 308.7 | 1.000 | 1.000 | 1.000 | MET |
+
+Accuracy unchanged. Cost per 51-post run falls from ~$0.00187 to ~$0.00160 (−14%). No regressions on any label. The definitions were over-specified relative to what Gemini needs to classify correctly when the decision rule is present.
+
+---
+
+**Stretch Feature 2 — Latency Breakdown**
+
+Measured on a 15-post run with both classifiers (`python classify.py --n 15`), terminal output:
+
+```
+Latency breakdown (total wall time: 74.5 s):
+  Model load      : 12607 ms
+  Gemini API      : 11081 ms total  (739 ms/post avg)
+  DistilBERT infer:  1274 ms total  (85 ms/post avg)
+  Rate-limit wait : 49570 ms  (4.5 s/post throttle)
+```
+
+| Stage | Time | Share of wall time |
+|---|---|---|
+| Rate-limit throttle (4.5 s/post × 15) | 49,570 ms | 67 % |
+| Model load (DistilBERT from disk) | 12,607 ms | 17 % |
+| Gemini API calls | 11,081 ms | 15 % |
+| DistilBERT inference | 1,274 ms | 2 % |
+
+The throttle dominates — two thirds of wall time is deliberate sleeping to stay inside the free-tier rate limit. Gemini API round-trips (739 ms/post avg) account for most of the remaining time. DistilBERT inference is negligible (85 ms/post on CPU). Model load is a fixed 12.6 s one-time cost that amortises across a large batch. If the rate limit were removed (or a paid-tier key used), total wall time for 15 posts would drop from 74.5 s to roughly 25 s.
+
+---
+
+**Stretch Feature 3 — Load Observation**
+
+Normal rate: 4.5 s between Gemini calls (1 req every 4.5 s ≈ 13 req/min, inside the free-tier 15 req/min limit). Load test: reduced to 0.5 s between calls (≈ 55–120 req/min — roughly 10× the nominal rate). Run with `python classify.py --n 10 --fast`.
+
+| Measure | Normal (4.5 s throttle, 15 posts) | Load test (0.5 s throttle, 10 posts) |
+|---|---|---|
+| Error rate | 0 % | 0 % |
+| Gemini accuracy | 1.000 | 1.000 |
+| Avg API latency | 739 ms/post | 624 ms/post |
+| Throttle wait (total) | 49,570 ms | 4,523 ms |
+| Wall time | 74.5 s | 10.8 s |
+| Cost per post | $0.0000314 | $0.0000312 |
+
+Nothing changed in accuracy or error rate. No 429 RESOURCE_EXHAUSTED errors appeared on a 10-post batch at 10× the throttled rate. Two interpretations: the free tier allows short bursts above 15 req/min without immediate rejection, or the actual per-minute accounting window didn't fill within 10 sequential calls. The earlier 429s during development occurred during rapid interactive retesting, not during a steady sequential batch. The conservative 4.5 s throttle is safe for unattended batch runs; whether it could be tightened without risk on a larger batch remains untested.
+
+---
+
 **What's Still Broken**
 
 All five criteria were met. The targets that were set too low:

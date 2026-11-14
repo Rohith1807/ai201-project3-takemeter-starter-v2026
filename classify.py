@@ -38,27 +38,24 @@ LABELS = ["analysis", "hot_take", "reaction", "request"]
 MODEL_DIR = "takemeter_out"
 LOG_FILE = "classify_log.jsonl"
 
-# Full definitions used in the Gemini prompt — copied from README taxonomy.
+# Condensed definitions (improvement 2: reduced from ~90 to ~55 tokens per prompt).
+# Original full definitions are preserved in README taxonomy section.
 DEFINITIONS = {
     "analysis": (
-        "a post that makes a claim backed by at least one specific, checkable fact "
-        "(a price, a count, a measured time, a named comparison, or a data point) "
-        "where the fact actually supports the claim being made"
+        "a claim backed by a specific, verifiable fact (price, count, measured time, "
+        "named comparison) where that fact directly supports the claim"
     ),
     "hot_take": (
-        "a confident, direct claim about travel offered without supporting data — "
-        "the writer is sure but does not show their work; numbers that appear are "
-        "credentialing, not evidence"
+        "a confident claim without supporting data — the writer is sure but doesn't "
+        "show their work; a number in the post is credentialing, not evidence"
     ),
     "reaction": (
-        "an immediate, personal response to something the writer just experienced, "
-        "witnessed, or found out about — the writing is present-tense and about "
-        "the moment itself, not a considered evaluation"
+        "immediate personal response to something just experienced — present-tense, "
+        "about the moment itself, not a considered evaluation"
     ),
     "request": (
-        "a post asking the community for advice, a recommendation, or factual "
-        "information the writer does not already have — the writer is soliciting "
-        "answers, not making a claim or sharing an experience"
+        "asking the community for advice, a recommendation, or information "
+        "the writer does not already have"
     ),
 }
 
@@ -198,7 +195,7 @@ def classify_one(text, ground_truth, clf, gemini_client):
     return record
 
 
-def print_summary(records):
+def print_summary(records, load_ms=0, total_ms=0):
     n = len(records)
     if n == 0:
         print("No records.")
@@ -236,9 +233,23 @@ def print_summary(records):
     lat_records = [r for r in records if "latency_ms" in r.get("gemini", {})]
     avg_lat = sum(r["gemini"]["latency_ms"] for r in lat_records) / len(lat_records) if lat_records else 0
 
+    has_db = any("distilbert" in r and "error" not in r["distilbert"] for r in records)
+    db_records = [r for r in records if "latency_ms" in r.get("distilbert", {})]
+    avg_db_lat = sum(r["distilbert"]["latency_ms"] for r in db_records) / len(db_records) if db_records else 0
+    throttle_ms = max(0, total_ms - sum(r["gemini"].get("latency_ms", 0) for r in lat_records)
+                      - sum(r.get("distilbert", {}).get("latency_ms", 0) for r in db_records)
+                      - load_ms) if total_ms else 0
+
     print(f"\nGemini tokens    : {in_total} in / {out_total} out")
     print(f"Cost (est.)      : ${cost:.6f}  (~${cost/n*1000:.4f} per 1 000 posts)")
     print(f"Avg latency      : {avg_lat:.0f} ms/post")
+    if total_ms:
+        print(f"\nLatency breakdown (total wall time: {total_ms/1000:.1f} s):")
+        print(f"  Model load      : {load_ms:.0f} ms")
+        print(f"  Gemini API      : {sum(r['gemini'].get('latency_ms',0) for r in lat_records):.0f} ms total  ({avg_lat:.0f} ms/post avg)")
+        if has_db:
+            print(f"  DistilBERT infer: {sum(r['distilbert']['latency_ms'] for r in db_records):.0f} ms total  ({avg_db_lat:.0f} ms/post avg)")
+        print(f"  Rate-limit wait : {throttle_ms:.0f} ms  ({GEMINI_MIN_INTERVAL} s/post throttle)")
     print(f"{'─'*52}")
 
 
@@ -258,6 +269,8 @@ def main():
                         help=f"append log to this file (default: {LOG_FILE})")
     parser.add_argument("--no-distilbert", action="store_true",
                         help="skip DistilBERT, run Gemini only")
+    parser.add_argument("--fast", action="store_true",
+                        help="reduce rate-limit interval to 0.5 s (load test; may trigger 429)")
     args = parser.parse_args()
 
     api_key = load_api_key()
@@ -280,11 +293,18 @@ def main():
               file=sys.stderr)
         sys.exit(1)
 
+    if args.fast:
+        global GEMINI_MIN_INTERVAL
+        GEMINI_MIN_INTERVAL = 0.5
+        print("[load-test] Rate-limit interval reduced to 0.5 s (~120 req/min).")
+
     gemini_client = genai.Client(api_key=api_key)
 
     clf = None
+    t_load_start = time.perf_counter()
     if not args.no_distilbert:
         clf = load_distilbert(MODEL_DIR)
+    load_ms = (time.perf_counter() - t_load_start) * 1000
 
     if args.post:
         posts = [{"text": args.post, "label": "unknown"}]
@@ -308,6 +328,7 @@ def main():
 
     records = []
     log_path = Path(args.log)
+    t_classify_start = time.perf_counter()
     with log_path.open("a", encoding="utf-8") as fh:
         for i, post in enumerate(posts, 1):
             print(f"  {i}/{len(posts)}", end="\r", flush=True)
@@ -315,10 +336,11 @@ def main():
             records.append(rec)
             fh.write(json.dumps(rec, ensure_ascii=False) + "\n")
             fh.flush()
+    total_ms = (time.perf_counter() - t_classify_start) * 1000
 
     print(" " * 20, end="\r")
     print(f"Log appended to {log_path}  ({len(records)} new entries)")
-    print_summary(records)
+    print_summary(records, load_ms=load_ms, total_ms=total_ms)
 
 
 if __name__ == "__main__":
